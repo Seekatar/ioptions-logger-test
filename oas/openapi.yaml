@@ -1,0 +1,147 @@
+openapi: 3.0.0
+info:
+  title: IConfiguration and IOption test
+  description: Test API to show using IOptions and IConfiguration
+  contact:
+    email: myemail@aisreview.com
+  license:
+    name: Apache 2.0
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+  version: 1.0.0-oas3
+servers:
+  - url: "http://localhost:58169"
+    description: Localhost
+tags:
+  - name: Configuration
+    description: Using IConfiguration
+  - name: Options
+    description: Using IOptions
+  - name: Logger
+    description: Log messages
+paths:
+  /api/config:
+    get:
+      tags:
+        - Configuration
+      summary: Get IConfiguration values
+      operationId: getIConfiguration
+      responses:
+        "200":
+          description: Configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/configuration"
+        "400":
+          description: bad input parameter
+  /api/config/section:
+    get:
+      tags:
+        - Configuration
+      summary: Get IConfiguration values in a section
+      operationId: getIConfiguration
+      responses:
+        "200":
+          description: Configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/configuration"
+        "400":
+          description: bad input parameter
+  /api/options:
+    get:
+      tags:
+        - Options
+      summary: Get IOptions values
+      operationId: getIOptions
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/configuration"
+        "400":
+          description: bad input parameter
+  /api/options/monitored:
+    get:
+      tags:
+        - Options
+      summary: Get IOptions values using monitor
+      operationId: getIMonitoredOptions
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/configuration"
+        "400":
+          description: bad input parameter
+  /api/options/snapshot:
+    get:
+      tags:
+        - Options
+      summary: Get IOptions values using snapshot
+      operationId: getISnapshotOptions
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/configuration"
+        "400":
+          description: bad input parameter
+  /api/logger:
+    post:
+      tags:
+        - Logger
+      summary: Log a message
+      operationId: logMessage
+      requestBody:
+        description: Message to log
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/message"
+        required: true
+      responses:
+        "200":
+          description: Ok
+        "400":
+          description: bad input parameter
+components:
+  schemas:
+    configurationBase:
+      description: Values from configuration
+      type: object
+      properties:
+        fromEnvironment:
+          type: string
+        fromAppSettings:
+          type: string
+        fromDevelopmentSettings:
+          type: string
+        fromSharedDevelopmentSettings:
+          type: string
+    configuration:
+      allOf:
+        - $ref: "#/components/schemas/configurationBase"
+    message:
+      description: Message to send
+      type: object
+      required:
+        - message
+        - level
+      properties:
+        message:
+          type: string
+        level:
+          type: string
+          enum:
+            - debug
+            - info
+            - warn
+            - error
