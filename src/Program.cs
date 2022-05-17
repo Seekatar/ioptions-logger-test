@@ -1,8 +1,10 @@
 using OptionLoggerTest;
 using OptionsLoggerTest.Interfaces;
 using OptionsLoggerTest.Services;
+using Seekatar.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.InsertSharedDevSettings();
 
 // Add services to the container.
 
