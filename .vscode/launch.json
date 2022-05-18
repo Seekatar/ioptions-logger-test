@@ -12,19 +12,27 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/src/bin/Debug/net6.0/options-logger-test.dll",
             "args": [],
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
                 "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
                  ,"uriFormat": "%s/swagger"
             },
-            // "launchBrowser": {
-            //     "enabled": true,
-            //     "args": "${auto-detect-url}/swagger",
-            // },
+
             "env": {
-                "ASPNETCORE_ENVIRONMENT": "Development"
+                "ASPNETCORE_ENVIRONMENT": "Development",
+
+                "FromEnvironment": "EnvironmentSettings1",
+
+                "Configuration:FromEnvironment": "EnvironmentSettings2",
+
+                "Monitored:FromEnvironment": "EnvironmentSettings3",
+
+                "Snapshot:FromEnvironment": "EnvironmentSettings4",
+
+                "OneTime:FromEnvironment": "EnvironmentSettings5"
+
             },
             "sourceFileMap": {
                 "/Views": "${workspaceFolder}/Views"

@@ -18,6 +18,7 @@ public partial class ConfigurationBase
     public string FromAppSettings { get; set; } = "";
 
     [Required]
+    [RegularExpression("^\\w+Settings\\d$")]
     public string FromDevelopmentSettings { get; set; } = "";
 
     public string FromSharedDevelopmentSettings { get; set; } = "";
