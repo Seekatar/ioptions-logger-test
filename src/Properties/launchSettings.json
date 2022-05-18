@@ -1,7 +1,23 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:62752",
+      "sslPort": 44388
+    }
+  },
   "profiles": {
-    "src": {
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "option-test": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
@@ -10,12 +26,16 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
 
-        "FromSharedDevelopmentSettings": "EnvironmentSettings",
-        "FromEnvironment": "EnvironmentSettings",
+        // highest priority so will override everything else
+        "FromEnvironment": "EnvironmentSettings1",
 
-        "Configuration:FromEnvironment": "EnvironmentSettings",
-        "Configuration:FromSharedDevelopmentSettings": "EnvironmentSettings"
-      }
+        "Configuration:FromEnvironment": "EnvironmentSettings2",
+
+        "Monitored:FromEnvironment": "EnvironmentSettings3",
+
+        "Snapshot:FromEnvironment": "EnvironmentSettings4",
+
+        "OneTime:FromEnvironment": "EnvironmentSettings5"
       }
     }
   }

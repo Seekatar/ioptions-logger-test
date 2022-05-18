@@ -14,7 +14,8 @@ namespace OptionsLoggerTest.Services
         public Task<Configuration> GetConfiguration()
         {
             return Task.FromResult(
-                new Configuration {
+                new Configuration
+                {
                     FromAppSettings = _configuration["FromAppSettings"],
                     FromDevelopmentSettings = _configuration["FromDevelopmentSettings"],
                     FromEnvironment = _configuration["FromEnvironment"],
@@ -24,9 +25,9 @@ namespace OptionsLoggerTest.Services
         }
         public Task<Configuration> GetConfigurationSection()
         {
-            return Task.FromResult(
-                _configuration.GetSection("Configuration").Get<Configuration>()
-            );
+            var ret = _configuration.GetSection("Configuration").Get<Configuration>();
+            ret.Name = "ConfigurationSection";
+            return Task.FromResult(ret);
         }
     }
 }

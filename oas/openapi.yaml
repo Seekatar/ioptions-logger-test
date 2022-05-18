@@ -118,6 +118,8 @@ components:
       description: Values from configuration
       type: object
       properties:
+        name:
+          type: string
         fromEnvironment:
           type: string
         fromAppSettings:

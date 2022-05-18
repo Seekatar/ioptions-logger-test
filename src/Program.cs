@@ -2,9 +2,12 @@ using OptionLoggerTest;
 using OptionsLoggerTest.Interfaces;
 using OptionsLoggerTest.Services;
 using Seekatar.Tools;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.InsertSharedDevSettings();
+
+builder.Host.UseSerilog((ctx, loggerConfig) => loggerConfig.ReadFrom.Configuration(builder.Configuration));
 
 // Add services to the container.
 
@@ -15,7 +18,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IConfigurationService, ConfigurationService>();
 builder.Services.AddSingleton<IOptionsService, OptionsService>();
-builder.Services.AddSingleton<ILoggerService, LoggerService>();
 
 builder.Services.AddOptions<OneTimeOptions>()
         .Bind(builder.Configuration.GetSection(OneTimeOptions.SectionName))
