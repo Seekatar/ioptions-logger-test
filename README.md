@@ -76,7 +76,7 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 
 ```powershell
 $uri = "http://localhost:5138/api/"
-(irm "${uri}config" && irm "${uri}config"/section ) | ft
+(irm "${uri}config" && irm "${uri}config/section" ) | ft
 ```
 
 ### Options endpoints
