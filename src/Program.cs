@@ -7,18 +7,18 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.InsertSharedDevSettings();
 
+#region Add Serilog
 builder.Host.UseSerilog((ctx, loggerConfig) => loggerConfig.ReadFrom.Configuration(builder.Configuration));
-
-// Add services to the container.
+#endregion
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IConfigurationService, ConfigurationService>();
 builder.Services.AddSingleton<IOptionsService, OptionsService>();
 
+#region Add Options
 builder.Services.AddOptions<OneTimeOptions>()
         .Bind(builder.Configuration.GetSection(OneTimeOptions.SectionName))
         .ValidateDataAnnotations()
@@ -31,10 +31,10 @@ builder.Services.AddOptions<MonitoredOptions>()
 builder.Services.AddOptions<SnapshotOptions>()
         .Bind(builder.Configuration.GetSection(SnapshotOptions.SectionName))
         .ValidateDataAnnotations();
+#endregion
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

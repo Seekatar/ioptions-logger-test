@@ -23,13 +23,15 @@ using System.Runtime.Serialization;
 using System.Text.Json;
 
 namespace IOptionTest
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [DataContract]
     public partial class Configuration : ConfigurationBase, IEquatable<Configuration>
-    { 
+    {
+        public static string SectionName = "Configuration";
+
         /// <summary>
         /// Returns the string presentation of the object
         /// </summary>

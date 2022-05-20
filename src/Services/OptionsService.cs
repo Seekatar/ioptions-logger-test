@@ -10,7 +10,9 @@ namespace OptionsLoggerTest.Services
         private readonly IOptionsMonitor<MonitoredOptions> _monitored;
         private readonly IOptions<OneTimeOptions> _onetime;
 
-        public OptionsService(ILogger<OptionsService> logger, IOptionsMonitor<MonitoredOptions> monitored, IOptions<OneTimeOptions> onetime)
+        public OptionsService( IOptionsMonitor<MonitoredOptions> monitored,
+                               IOptions<OneTimeOptions> onetime,
+                               ILogger<OptionsService> logger)
         {
             _logger = logger;
             _monitored = monitored;
@@ -32,15 +34,7 @@ namespace OptionsLoggerTest.Services
 
         public Task<OneTimeOptions> GetOneTimeOptions()
         {
-            try
-            {
-                return Task.FromResult(_onetime.Value);
-            }
-            catch (OptionsValidationException e)
-            {
-                _logger.LogError(e, "Ow!");
-            }
-            return Task.FromResult(new OneTimeOptions());
+            return Task.FromResult(_onetime.Value);
         }
     }
 }

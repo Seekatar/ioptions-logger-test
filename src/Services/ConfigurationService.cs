@@ -25,7 +25,7 @@ namespace OptionsLoggerTest.Services
         }
         public Task<Configuration> GetConfigurationSection()
         {
-            var ret = _configuration.GetSection("Configuration").Get<Configuration>();
+            var ret = _configuration.GetSection(Configuration.SectionName).Get<Configuration>();
             ret.Name = "ConfigurationSection";
             return Task.FromResult(ret);
         }

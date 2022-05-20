@@ -36,7 +36,7 @@
 
         "Snapshot:FromEnvironment": "EnvironmentSettings4",
 
-        "OneTime:FromEnvironment": "EnvironmentSettings5"
+        "OneTime__FromEnvironment": "EnvironmentSettings5"
       }
     }
   }

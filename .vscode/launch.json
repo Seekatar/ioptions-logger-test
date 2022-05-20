@@ -23,15 +23,17 @@
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development",
 
-                "FromEnvironment": "EnvironmentSettings1",
+                // launch.json trumps Properties/launchSettings.json
 
-                "Configuration:FromEnvironment": "EnvironmentSettings2",
+                // "FromEnvironment": "environmentSettings1",
 
-                "Monitored:FromEnvironment": "EnvironmentSettings3",
+                // "Configuration__FromEnvironment": "environmentSettings2",
 
-                "Snapshot:FromEnvironment": "EnvironmentSettings4",
+                // "Monitored__FromEnvironment": "environmentSettings3",
 
-                "OneTime:FromEnvironment": "EnvironmentSettings5"
+                // "Snapshot__FromEnvironment": "environmentSettings4",
+
+                // "OneTime__FromEnvironment": "environmentSettings5"
 
             },
             "sourceFileMap": {

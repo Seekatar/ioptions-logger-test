@@ -21,15 +21,15 @@ using System.Threading.Tasks;
 using OptionsLoggerTest.Interfaces;
 
 namespace IOptionTest.Controllers
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [ApiController]
     public class LoggerApiController : ControllerBase
     {
         private readonly ILogger<LoggerApiController> _logger;
-        static string Eyecatcher = ">>>>>>>>>>>>>>>>>>>>";
+        static string EyeCatcher = "OOOOOOOOOOOOOOOOOOO";
 
         public LoggerApiController(ILogger<LoggerApiController> logger)
         {
@@ -39,16 +39,17 @@ namespace IOptionTest.Controllers
         /// <summary>
         /// Log a message
         /// </summary>
-        /// <param name="body">Message to log</param>
+        /// <param name="message">Message to log</param>
         /// <response code="200">Ok</response>
         /// <response code="400">bad input parameter</response>
         [HttpPost]
         [Route("/api/logger")]
         [ValidateModelState]
         [SwaggerOperation("LogMessage")]
-        public virtual IActionResult LogMessage([FromBody]Message body)
+        public virtual IActionResult LogMessage([FromBody]Message message)
         {
-            _logger.Log(body.Level, "{eyecatcher} Logging with {level} and message {message}", Eyecatcher, body.Level, body._Message);
+            _logger.Log(message.Level, "{eyeCatcher} Logging with {level} and message {message}",
+                                            EyeCatcher, message.Level, message._Message);
             return Ok();
         }
     }

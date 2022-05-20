@@ -72,30 +72,12 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 
 ## Exercising the Endpoints From PowerShell
 
-### Vanilla Config
+There some helper scripts in the root
 
-```powershell
-$uri = "http://localhost:5138/api/"
-(irm "${uri}config" && irm "${uri}config/section" ) | ft
-```
-
-### Options endpoints
-
-```powershell
-(irm "${uri}options/monitored" && irm "${uri}options/snapshot" && irm "${uri}options") | ft
-```
-
-### Config and Options endpoints
-
-```powershell
-(irm "${uri}config" && irm "${uri}config/section" && irm "${uri}options/monitored" && irm "${uri}options/snapshot" && irm "${uri}options") | ft
-```
-
-### Logging All Levels
-
-```powershell
-1..6 | % { irm "${uri}logger" -Method POST -Body "{`"level`": $_,`"_Message`":`"hi'`"}" -ContentType 'application/json' }
-```
+* ./c.ps1 # IConfiguration config
+* ./o.ps1 # IOptions
+* ./a.ps1 # all config
+* ./l.ps1 # logging
 
 ## Console Apps
 
@@ -107,6 +89,12 @@ All of this can also be used in Console apps, but requires a bit more code since
 ../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
 ```
 
-## Codespace Enabled Repo
+## Codespace-Enabled Repo
 
-Codespaces were announced May 2020, and I was finally included in the beta two years later. This repo is enabled to use Codespaces, and the `.devcontainer` folder had the customization for running this app.
+[Codespaces](https://github.com/features/codespaces) were announced May 2020. I immediately signed up to be in the beta, and I was finally included two years later. This repo is enabled to use Codespaces, and the `.devcontainer` folder had the customization for running this app.
+
+Click [here](https://github.com/features/codespaces/signup?utm_source=visualstudio.microsoft.com&utm_medium=referral&utm_campaign=vscs) to sign up for the beta.
+
+## My Blog
+
+I randomly blog [here](https://seekatar.github.io/) using GitHub and Jekyll.
