@@ -18,34 +18,39 @@ using IO.Swagger.Attributes;
 using Microsoft.AspNetCore.Authorization;
 using IOptionTest;
 using System.Threading.Tasks;
+using OptionsLoggerTest.Interfaces;
 
 namespace IOptionTest.Controllers
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [ApiController]
     public class LoggerApiController : ControllerBase
-    { 
+    {
+        private readonly ILogger<LoggerApiController> _logger;
+        static string EyeCatcher = "OOOOOOOOOOOOOOOOOOO";
+
+        public LoggerApiController(ILogger<LoggerApiController> logger)
+        {
+            _logger = logger;
+        }
+
         /// <summary>
         /// Log a message
         /// </summary>
-        /// <param name="body">Message to log</param>
+        /// <param name="message">Message to log</param>
         /// <response code="200">Ok</response>
         /// <response code="400">bad input parameter</response>
         [HttpPost]
         [Route("/api/logger")]
         [ValidateModelState]
         [SwaggerOperation("LogMessage")]
-        public virtual IActionResult LogMessage([FromBody]Message body)
-        { 
-            //TODO: Uncomment the next line to return response 200 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(200);
-
-            //TODO: Uncomment the next line to return response 400 or use other options such as return this.NotFound(), return this.BadRequest(..), ...
-            // return StatusCode(400);
-
-            throw new NotImplementedException();
+        public virtual IActionResult LogMessage([FromBody]Message message)
+        {
+            _logger.Log(message.Level, "{eyeCatcher} Logging with {level} and message {message}",
+                                            EyeCatcher, message.Level, message._Message);
+            return Ok();
         }
     }
 }

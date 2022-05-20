@@ -41,37 +41,10 @@ namespace IOptionTest
         /// <summary>
         /// Gets or Sets Level
         /// </summary>
-        
-        public enum LevelEnum
-        {
-            /// <summary>
-            /// Enum DebugEnum for debug
-            /// </summary>
-            [EnumMember(Value = "debug")]
-            DebugEnum = 0,
-            /// <summary>
-            /// Enum InfoEnum for info
-            /// </summary>
-            [EnumMember(Value = "info")]
-            InfoEnum = 1,
-            /// <summary>
-            /// Enum WarnEnum for warn
-            /// </summary>
-            [EnumMember(Value = "warn")]
-            WarnEnum = 2,
-            /// <summary>
-            /// Enum ErrorEnum for error
-            /// </summary>
-            [EnumMember(Value = "error")]
-            ErrorEnum = 3        }
-
-        /// <summary>
-        /// Gets or Sets Level
-        /// </summary>
         [Required]
 
         [DataMember(Name="level")]
-        public LevelEnum Level { get; set; }
+        public LogLevel Level { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object

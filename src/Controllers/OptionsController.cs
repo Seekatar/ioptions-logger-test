@@ -23,20 +23,24 @@ using OptionLoggerTest;
 using Microsoft.Extensions.Options;
 
 namespace IOptionTest.Controllers
-{ 
+{
     /// <summary>
-    /// 
+    ///
     /// </summary>
     [ApiController]
     public class OptionsApiController : ControllerBase
     {
         private readonly IOptionsService _optionsService;
         private readonly IOptionsSnapshot<SnapshotOptions> _snapshot;
+        private readonly ILogger<OptionsApiController> _logger;
 
-        public OptionsApiController(IOptionsService optionsService, IOptionsSnapshot<SnapshotOptions> snapshot)
+        public OptionsApiController(IOptionsSnapshot<SnapshotOptions> snapshot,
+                                    IOptionsService optionsService,
+                                    ILogger<OptionsApiController> logger)
         {
             _optionsService = optionsService;
             _snapshot = snapshot;
+            _logger = logger;
         }
 
         /// <summary>
@@ -81,7 +85,15 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
         {
-            return Ok(_snapshot.Value);
+            try
+            {
+                return Ok(_snapshot.Value);
+            }
+            catch (OptionsValidationException e)
+            {
+                _logger.LogError(e, "Ow!");
+            }
+            return Ok(new SnapshotOptions());
         }
     }
 }

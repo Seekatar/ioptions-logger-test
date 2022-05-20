@@ -1,0 +1,35 @@
+#!markdown
+
+# Interactive Notebook Test
+
+#!csharp
+
+using static System.Console;
+using System.Text.RegularExpressions;
+
+private string StringFormatRegex = "(?<!{){[A-Za-z]+}";
+
+string TryFormat(string message, params object?[]? args)
+{
+    if (args is null || !message.Contains('{')) return message;
+    var i = 0;
+    var me = new MatchEvaluator((match) => $"{(match.Groups.Count > 1 ? match.Groups[1]: "")}{{{i++}}}");
+    try {
+        return string.Format(Regex.Replace(message, StringFormatRegex, me), args);
+    } catch {
+        return message;
+    }
+}
+
+WriteLine(TryFormat("this is a test"));
+WriteLine(TryFormat("this is a {test} {next} {{hi}} {next}", "first", 2, DateTime.Now));
+WriteLine(TryFormat("{test}", "first"));
+WriteLine(TryFormat("{{test} {f}", "first"));
+WriteLine(TryFormat("another {{test}} {but}", "first"));
+WriteLine(TryFormat("another {0} {1}", "first", 2));
+
+WriteLine();
+// negative test
+WriteLine(TryFormat("another {{test}", "first"));  // no closing }}
+WriteLine(TryFormat("another {test} {one} {three}", "first", 1)); // too few args
+WriteLine(TryFormat("{test", "first", 1)); // missing }
