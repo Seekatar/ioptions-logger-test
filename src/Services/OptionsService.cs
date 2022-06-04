@@ -23,6 +23,7 @@ namespace OptionsLoggerTest.Services
         {
             try
             {
+                _logger.LogInformation("Monitored output {value}", _monitored.CurrentValue);
                 return Task.FromResult(_monitored.CurrentValue);
             }
             catch (OptionsValidationException e)
@@ -34,7 +35,16 @@ namespace OptionsLoggerTest.Services
 
         public Task<OneTimeOptions> GetOneTimeOptions()
         {
-            return Task.FromResult(_onetime.Value);
+            try
+            {
+                _logger.LogInformation("Onetime output {value}", _onetime.Value);
+                return Task.FromResult(_onetime.Value);
+            }
+            catch (OptionsValidationException e)
+            {
+                _logger.LogError(e, "Ow!");
+            }
+            return Task.FromResult(new OneTimeOptions());
         }
     }
 }

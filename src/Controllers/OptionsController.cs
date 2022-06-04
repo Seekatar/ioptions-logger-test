@@ -34,9 +34,7 @@ namespace IOptionTest.Controllers
         private readonly IOptionsSnapshot<SnapshotOptions> _snapshot;
         private readonly ILogger<OptionsApiController> _logger;
 
-        public OptionsApiController(IOptionsSnapshot<SnapshotOptions> snapshot,
-                                    IOptionsService optionsService,
-                                    ILogger<OptionsApiController> logger)
+        public OptionsApiController(IOptionsService optionsService, IOptionsSnapshot<SnapshotOptions> snapshot, ILogger<OptionsApiController> logger)
         {
             _optionsService = optionsService;
             _snapshot = snapshot;
@@ -55,6 +53,8 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual async Task<ActionResult<MonitoredOptions>> GetIMonitoredOptions()
         {
+            //using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
+            using var scope = _logger.BeginScope(new Client { ClientId = "ClientId", MarketEntityId = 1111 });
             return Ok(await _optionsService.GetMonitoredOptions());
         }
 
@@ -70,9 +70,16 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual async Task<ActionResult<OneTimeOptions>> GetIOptions()
         {
+            //using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
+            using var scope = _logger.BeginScope(new Client { ClientId = "ClientId", MarketEntityId = 1111 });
             return Ok(await _optionsService.GetOneTimeOptions());
         }
 
+        class Client
+        {
+            public string ClientId { get; set; }
+            public int MarketEntityId { get; set; }
+        }
         /// <summary>
         /// Get IOptions values using snapshot
         /// </summary>
@@ -85,15 +92,11 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
         {
-            try
-            {
-                return Ok(_snapshot.Value);
-            }
-            catch (OptionsValidationException e)
-            {
-                _logger.LogError(e, "Ow!");
-            }
-            return Ok(new SnapshotOptions());
+            using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
+            //using var scope = _logger.BeginScope(new Client { ClientId = "ClientId", MarketEntityId = 1111 });
+            _logger.LogInformation("Getting value {value}", _snapshot.Value);
+            throw new NotImplementedException("This is a test");
+            return Ok(_snapshot.Value);
         }
     }
 }

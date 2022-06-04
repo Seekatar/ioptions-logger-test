@@ -70,6 +70,10 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 | /api/options/snapshot  | Get configuration via IOptionsSnapshot                    |
 | /api/logger            | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL |
 
+- Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
+- Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
+- Andrew Lock on [error handling](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
+
 ## Exercising the Endpoints From PowerShell
 
 There some helper scripts in the root
