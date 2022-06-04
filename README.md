@@ -73,6 +73,7 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 - Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
 - Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
 - Andrew Lock on [error handling](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
+- Doc for [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails)
 
 ## Exercising the Endpoints From PowerShell
 

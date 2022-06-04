@@ -57,7 +57,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-public class TestLogger {}
+public class TestLogger { }
 
 #pragma warning disable CA2254 // inconsistent use of Logger
 
@@ -91,7 +91,11 @@ public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter
 
     public void OnActionExecuted(ActionExecutedContext context)
     {
-        _logger.LogError(context.Exception, "InFilter");
+        if (context.Exception is not null)
+        {
+            // _logger.LogError(context.Exception, "InFilter {message}", context.Exception.Message);
+            context.ExceptionHandled = true;
+        }
     }
 }
 #pragma warning restore CA2254
@@ -109,11 +113,11 @@ public static class ExceptionMiddlewareExtensions
                 if (contextFeature != null)
                 {
                     logger.LogError($"Something went wrong: {contextFeature.Error}");
-                    await context.Response.WriteAsync(new ProblemDetails()
+                    await context.Response.WriteAsync((new ProblemDetails()
                     {
                         Status = context.Response.StatusCode,
                         Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1"
-                    }.ToString());
+                    }.ToString()) ?? "");
 
 
                 }

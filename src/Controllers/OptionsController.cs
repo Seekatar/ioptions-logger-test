@@ -22,81 +22,158 @@ using OptionsLoggerTest.Interfaces;
 using OptionLoggerTest;
 using Microsoft.Extensions.Options;
 
-namespace IOptionTest.Controllers
+namespace IOptionTest.Controllers;
+
+public class ClientContext
 {
-    /// <summary>
-    ///
-    /// </summary>
-    [ApiController]
-    public class OptionsApiController : ControllerBase
+    public string ClientId { get; set; } = "";
+    public int MarketEntityId { get; set; }
+}
+
+
+public class ScopeControllerBase : ControllerBase
+{
+    private readonly ILogger _logger;
+
+    protected ILogger Logger => _logger;
+
+    protected ScopeControllerBase(ILogger logger)
     {
-        private readonly IOptionsService _optionsService;
-        private readonly IOptionsSnapshot<SnapshotOptions> _snapshot;
-        private readonly ILogger<OptionsApiController> _logger;
+        _logger = logger;
+    }
 
-        public OptionsApiController(IOptionsService optionsService, IOptionsSnapshot<SnapshotOptions> snapshot, ILogger<OptionsApiController> logger)
+#pragma warning disable CS8603 // Possible null return value.
+    protected T ExecuteIt<T>(Func<T> a, IDictionary<string, object> context)
+    {
+        try
         {
-            _optionsService = optionsService;
-            _snapshot = snapshot;
-            _logger = logger;
+            using var scope = _logger.BeginScope(context);
+            return a();
         }
+        catch (Exception ex) when (LogCaughtException(ex))
+        {
+            // never get here since LogException returns false
+        }
+        // or here
+        return default(T);
+    }
+#pragma warning restore CS8603 // Possible null return value.
 
-        /// <summary>
-        /// Get IOptions values using monitor
-        /// </summary>
-        /// <response code="200">Ok</response>
-        /// <response code="400">bad input parameter</response>
-        [HttpGet]
-        [Route("/api/options/monitored")]
-        [ValidateModelState]
-        [SwaggerOperation("GetIMonitoredOptions")]
-        [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-        public virtual async Task<ActionResult<MonitoredOptions>> GetIMonitoredOptions()
-        {
-            //using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
-            using var scope = _logger.BeginScope(new Client { ClientId = "ClientId", MarketEntityId = 1111 });
-            return Ok(await _optionsService.GetMonitoredOptions());
-        }
+    protected virtual void LogException(Exception ex)
+    {
+        _logger.LogError(ex, "Error");
 
-        /// <summary>
-        /// Get IOptions values
-        /// </summary>
-        /// <response code="200">Ok</response>
-        /// <response code="400">bad input parameter</response>
-        [HttpGet]
-        [Route("/api/options")]
-        [ValidateModelState]
-        [SwaggerOperation("GetIOptions")]
-        [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-        public virtual async Task<ActionResult<OneTimeOptions>> GetIOptions()
-        {
-            //using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
-            using var scope = _logger.BeginScope(new Client { ClientId = "ClientId", MarketEntityId = 1111 });
-            return Ok(await _optionsService.GetOneTimeOptions());
-        }
-
-        class Client
-        {
-            public string ClientId { get; set; }
-            public int MarketEntityId { get; set; }
-        }
-        /// <summary>
-        /// Get IOptions values using snapshot
-        /// </summary>
-        /// <response code="200">Ok</response>
-        /// <response code="400">bad input parameter</response>
-        [HttpGet]
-        [Route("/api/options/snapshot")]
-        [ValidateModelState]
-        [SwaggerOperation("GetISnapshotOptions")]
-        [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-        public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
-        {
-            using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
-            //using var scope = _logger.BeginScope(new Client { ClientId = "ClientId", MarketEntityId = 1111 });
-            _logger.LogInformation("Getting value {value}", _snapshot.Value);
-            throw new NotImplementedException("This is a test");
-            return Ok(_snapshot.Value);
-        }
+    }
+    protected virtual bool LogCaughtException(Exception ex)
+    {
+        LogException(ex);
+        return false;
     }
 }
+
+public class ClientIdScopeControllerBase : ScopeControllerBase
+{
+    protected ClientIdScopeControllerBase(ILogger logger) : base(logger)
+    {
+    }
+
+    protected T ExecuteIt<T>(ClientContext context, Func<T> a)
+    {
+        var contextDict = new Dictionary<string, object>
+        {
+            { "ClientId", context.ClientId },
+            { "MarketEntityId", context.MarketEntityId }
+        };
+        return ExecuteIt(a, contextDict);
+    }
+}
+
+/// <summary>
+///
+/// </summary>
+[ApiController]
+public class OptionsApiController : ClientIdScopeControllerBase
+{
+    private readonly IOptionsService _optionsService;
+    private readonly IOptionsSnapshot<SnapshotOptions> _snapshot;
+    ClientContext GetContext() => new ClientContext { ClientId = "ZZZZZZZZZZZZZZZZZZZZZZ", MarketEntityId = 1111 };
+    public OptionsApiController(IOptionsService optionsService, IOptionsSnapshot<SnapshotOptions> snapshot, ILogger<OptionsApiController> logger) : base(logger)
+    {
+        _optionsService = optionsService;
+        _snapshot = snapshot;
+    }
+
+    /// <summary>
+    /// Get IOptions values using monitor
+    /// </summary>
+    /// <response code="200">Ok</response>
+    /// <response code="400">bad input parameter</response>
+    [HttpGet]
+    [Route("/api/options/monitored")]
+    [ValidateModelState]
+    [SwaggerOperation("GetIMonitoredOptions")]
+    [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
+    public virtual async Task<ActionResult<MonitoredOptions>> GetIMonitoredOptions()
+    {
+        return await ExecuteIt<Task<ActionResult<MonitoredOptions>>>(GetContext(), async () =>
+        {
+            return Ok(await _optionsService.GetMonitoredOptions());
+        });
+    }
+
+    /// <summary>
+    /// Get IOptions values
+    /// </summary>
+    /// <response code="200">Ok</response>
+    /// <response code="400">bad input parameter</response>
+    [HttpGet]
+    [Route("/api/options")]
+    [ValidateModelState]
+    [SwaggerOperation("GetIOptions")]
+    [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
+    public virtual async Task<ActionResult<OneTimeOptions>> GetIOptions()
+    {
+        return await ExecuteIt<Task<ActionResult<OneTimeOptions>>>(GetContext(), async () =>
+        {
+            return Ok(await _optionsService.GetOneTimeOptions());
+        });
+    }
+
+    /// <summary>
+    /// Get IOptions values using snapshot
+    /// </summary>
+    /// <response code="200">Ok</response>
+    /// <response code="400">bad input parameter</response>
+    [HttpGet]
+    [Route("/api/options/snapshot")]
+    [ValidateModelState]
+    [SwaggerOperation("GetISnapshotOptions")]
+    [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
+    public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
+    {
+        return ExecuteIt<ActionResult<SnapshotOptions>>(GetContext(), () =>
+        {
+            Logger.LogInformation("Getting value {value}", _snapshot.Value);
+            return Ok(_snapshot.Value);
+        });
+    }
+    /// <summary>
+    /// Get IOptions values using snapshot
+    /// </summary>
+    /// <response code="200">Ok</response>
+    /// <response code="400">bad input parameter</response>
+    [HttpGet]
+    [Route("/api/options/throw")]
+    [ValidateModelState]
+    [SwaggerOperation("GetISnapshotOptionsThrow")]
+    [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
+    public virtual ActionResult<SnapshotOptions> GetISnapshotOptionsThrow()
+    {
+        return ExecuteIt<ActionResult<SnapshotOptions>>(GetContext(), () =>
+        {
+            Logger.LogInformation("Getting value {value}", _snapshot.Value);
+            throw new NotImplementedException("This is a test");
+        });
+    }
+}
+
