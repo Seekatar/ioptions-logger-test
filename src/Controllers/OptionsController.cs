@@ -57,6 +57,21 @@ public class ScopeControllerBase : ControllerBase
         // or here
         return default(T);
     }
+    protected async Task<T> ExecuteItAsync<T>(Func<Task<T>> a, IDictionary<string, object> context)
+    {
+        try
+        {
+            using var scope = _logger.BeginScope(context);
+            return await a();
+        }
+        catch (Exception ex) when (LogCaughtException(ex))
+        {
+            // never get here since LogException returns false
+        }
+        // or here
+        return default(T);
+
+    }
 #pragma warning restore CS8603 // Possible null return value.
 
     protected virtual void LogException(Exception ex)
@@ -71,9 +86,9 @@ public class ScopeControllerBase : ControllerBase
     }
 }
 
-public class ClientIdScopeControllerBase : ScopeControllerBase
+public class ClientContextScopeControllerBase : ScopeControllerBase
 {
-    protected ClientIdScopeControllerBase(ILogger logger) : base(logger)
+    protected ClientContextScopeControllerBase(ILogger logger) : base(logger)
     {
     }
 
@@ -86,13 +101,22 @@ public class ClientIdScopeControllerBase : ScopeControllerBase
         };
         return ExecuteIt(a, contextDict);
     }
+    protected async Task<T> ExecuteItAsync<T>(ClientContext context, Func<Task<T>> a)
+    {
+        var contextDict = new Dictionary<string, object>
+        {
+            { "ClientId", context.ClientId },
+            { "MarketEntityId", context.MarketEntityId }
+        };
+        return await ExecuteItAsync(a, contextDict);
+    }
 }
 
 /// <summary>
 ///
 /// </summary>
 [ApiController]
-public class OptionsApiController : ClientIdScopeControllerBase
+public class OptionsApiController : ClientContextScopeControllerBase
 {
     private readonly IOptionsService _optionsService;
     private readonly IOptionsSnapshot<SnapshotOptions> _snapshot;
@@ -115,7 +139,7 @@ public class OptionsApiController : ClientIdScopeControllerBase
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual async Task<ActionResult<MonitoredOptions>> GetIMonitoredOptions()
     {
-        return await ExecuteIt<Task<ActionResult<MonitoredOptions>>>(GetContext(), async () =>
+        return await ExecuteItAsync(GetContext(), async () =>
         {
             return Ok(await _optionsService.GetMonitoredOptions());
         });
@@ -133,7 +157,7 @@ public class OptionsApiController : ClientIdScopeControllerBase
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual async Task<ActionResult<OneTimeOptions>> GetIOptions()
     {
-        return await ExecuteIt<Task<ActionResult<OneTimeOptions>>>(GetContext(), async () =>
+        return await ExecuteItAsync(GetContext(), async () =>
         {
             return Ok(await _optionsService.GetOneTimeOptions());
         });
@@ -151,7 +175,7 @@ public class OptionsApiController : ClientIdScopeControllerBase
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
     {
-        return ExecuteIt<ActionResult<SnapshotOptions>>(GetContext(), () =>
+        return ExecuteIt(GetContext(), () =>
         {
             Logger.LogInformation("Getting value {value}", _snapshot.Value);
             return Ok(_snapshot.Value);
@@ -169,10 +193,13 @@ public class OptionsApiController : ClientIdScopeControllerBase
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual ActionResult<SnapshotOptions> GetISnapshotOptionsThrow()
     {
-        return ExecuteIt<ActionResult<SnapshotOptions>>(GetContext(), () =>
+        return ExecuteIt(GetContext(), () =>
         {
             Logger.LogInformation("Getting value {value}", _snapshot.Value);
             throw new NotImplementedException("This is a test");
+#pragma warning disable CS0162
+            return Ok(_snapshot.Value);
+#pragma warning restore CS0162
         });
     }
 }
