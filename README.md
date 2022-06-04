@@ -70,6 +70,8 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 | /api/options/snapshot  | Get configuration via IOptionsSnapshot                    |
 | /api/logger            | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL |
 
+Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
+
 ## Exercising the Endpoints From PowerShell
 
 ### Vanilla Config

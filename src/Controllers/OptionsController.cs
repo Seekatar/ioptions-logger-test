@@ -32,11 +32,13 @@ namespace IOptionTest.Controllers
     {
         private readonly IOptionsService _optionsService;
         private readonly IOptionsSnapshot<SnapshotOptions> _snapshot;
+        private readonly ILogger<OptionsApiController> _logger;
 
-        public OptionsApiController(IOptionsService optionsService, IOptionsSnapshot<SnapshotOptions> snapshot)
+        public OptionsApiController(IOptionsService optionsService, IOptionsSnapshot<SnapshotOptions> snapshot, ILogger<OptionsApiController> logger)
         {
             _optionsService = optionsService;
             _snapshot = snapshot;
+            _logger = logger;
         }
 
         /// <summary>
@@ -51,6 +53,7 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual async Task<ActionResult<MonitoredOptions>> GetIMonitoredOptions()
         {
+            using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
             return Ok(await _optionsService.GetMonitoredOptions());
         }
 
@@ -66,6 +69,7 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual async Task<ActionResult<OneTimeOptions>> GetIOptions()
         {
+            using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
             return Ok(await _optionsService.GetOneTimeOptions());
         }
 
@@ -81,6 +85,7 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
         public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
         {
+            using var scope = _logger.BeginScope(new Dictionary<string, object> { { "PersonId", 5 } });
             return Ok(_snapshot.Value);
         }
     }
