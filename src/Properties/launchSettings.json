@@ -34,7 +34,10 @@
 
         "Snapshot:FromEnvironment": "EnvironmentSettings4",
 
-        "OneTime__FromEnvironment": "EnvironmentSettings5"
+        "OneTime__FromEnvironment": "EnvironmentSettings5",
+
+        "OverriddenInCode": "EnvironmentSettings6"
+
       }
     }
   }

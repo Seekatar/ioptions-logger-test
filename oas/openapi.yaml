@@ -3,7 +3,7 @@ info:
   title: IConfiguration and IOption test
   description: Test API to show using IOptions and IConfiguration
   contact:
-    email: myemail@aisreview.com
+    email: myemail@bogus.com
   license:
     name: Apache 2.0
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"

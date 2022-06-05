@@ -1,10 +1,12 @@
 # IConfiguration & IOptions & ILogger Test
 
-Test for `IOptions`, `IConfiguration`, and `ILogger`. This sample app demonstrates the topics describe below, and is not an exhaustive discussion.
+This repo has tests for `IOptions`, `IConfiguration`, and `ILogger`. This sample ASP.NET app demonstrates the topics briefly described below.
 
-## Configuration
+## [IConfiguration](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.configuration.iconfiguration)
 
-### ASP.NET IConfiguration
+This can be injected into any class and used to get loose values from configuration providers, or a section of values into an object.
+
+### ASP.NET's Default IConfiguration
 
 This is built when the ASP.NET app is built. The default [configuration in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-6.0#default-application-configuration-sources) has these providers in priority order:
 
@@ -20,30 +22,65 @@ This diagram shows what is read with each subsequent level adding or replacing v
 ```mermaid
 stateDiagram
 
-shared.appsettings.Development.json --> appsettings.json : Overriden by
-appsettings.json --> appsettings.Development.json : Overriden by
-appsettings.Development.json --> UserSecrets : Overriden by
-UserSecrets --> Environment : Overriden by
-Environment --> CommandLine : Overriden by
+shared.appsettings.Development.json --> appsettings.json : Overridden by
+appsettings.json --> appsettings.Development.json : Overridden by
+appsettings.Development.json --> UserSecrets : Overridden by
+UserSecrets --> Environment : Overridden by
+Environment --> CommandLine : Overridden by
 
 UserSecrets: User Secrets
 CommandLine: Command Line
 appsettings.Development.json : appsettings.{{environment}}.json
 ```
 
-### [IConfiguration](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.configuration.iconfiguration)
+### Syntax for Values
 
-This can be injected into any class and used to get loose values from configration providers, or a section of values into an object.
+For nested items, colons are used to separate the levels, except in environment variables, where double underscores are used.
 
-### [Options Pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options)
+### [JSON Files](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration#file-configuration-provider)
 
-This can also be injected into any class and binds to a group of values from config providers.
+These are pretty straightforward. For complex objects, you may combine the levels with a colon, or split them. The following are equivalent:
 
-[IOptions&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptions-1) are read once, the first time accessed.
+```json
+{
+    "Snapshot:FromEnvironment":"test"
+}
+```
 
-[IOptionsMonitor&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionsmonitor-1) are read each time and are a singleton.
+```json
+{
+    "Snapshot":
+    {
+        "FromEnvironment":"test"
+    }
+}
+```
 
-[IOptionsSnapshot&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionssnapshot-1) are read each time and are a scopes so can be injected anywhere.
+### [Environment Variables](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration#evcp)
+
+Windows will tolerate colon separators, but it is best to always use double underscores, especially if you will be deploying to Linux, Mac or Linux containers.
+
+```powershell
+$env:OneTime__FromEnvironment = "EnvironmentSettings5"
+```
+
+### [Command Line](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration#command-line)
+
+The syntax is not intuitive. You use `MyKey` to indicate how the key values are used, then follow that by the values. The following are all equivalent:
+
+```powershell
+dotnet run MyKey="Using =" Snapshot:FromEnvironment=test
+dotnet run /MyKey="Using /" /Snapshot:FromEnvironment=test
+dotnet run --MyKey="Using --" --Snapshot:FromEnvironment=test
+```
+
+## [Options Pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options)
+
+The Option pattern uses IConfiguration, but binds a POCO to a configuration section. The POCO is wrapper with in IOption* interface, which can be injected into any class. There are three flavors:
+
+* [IOptions&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptions-1) are read once, the first time accessed.
+* [IOptionsMonitor&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionsmonitor-1) are read each time and are a singleton.
+* [IOptionsSnapshot&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionssnapshot-1) are read each time and are a scopes so can be injected anywhere.
 
 ### Options Validation Using Attributes
 
@@ -68,21 +105,28 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 | /api/options           | Get configuration via IOptions (no refresh)               |
 | /api/options/monitored | Get configuration via IOptionsMonitor                     |
 | /api/options/snapshot  | Get configuration via IOptionsSnapshot                    |
+| /api/options/throw     | Sample to throw an error to demonstration logging scope   |
 | /api/logger            | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL |
 
-- Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
-- Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
-- [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
-- Andrew Lock on [error handling](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
-- Doc for [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails)
+### Links
+
+* Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
+* Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
+* [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
+* Andrew Lock on [using .NET6 source generator for logging](https://andrewlock.net/exploring-dotnet-6-part-8-improving-logging-performance-with-source-generators/)
+* Andrew Lock on [error handling](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
+* Doc for [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails)
+* Andrew Lock on [using named configration sections](https://andrewlock.net/using-multiple-instances-of-strongly-typed-settings-with-named-options-in-net-core-2-x/). This repo doesn't demonstrate this, but this blog shows how you can create one POCO, and register multiple named instances of it in the configuration.
 
 ## Running Seq Locally
 
-[Seq](https://datalust.co/seq) is a logging aggregate you can run locally for free.
+This repo logs to [Seq](https://datalust.co/seq) by default. Seq is a logging aggregator that you can run locally to see friendly versions of semantic logs.
 
 ```powershell
 docker run -d --restart unless-stopped --name seq -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
 ```
+
+Then hit http://localhost:5341/#/events to see the logs.
 
 ## Exercising the Endpoints From PowerShell
 
@@ -99,9 +143,7 @@ All of this can also be used in Console apps, but requires a bit more code since
 
 ## Generating Code From the OAS file
 
-```powershell
-../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
-```
+I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://github.com/Seekatar/swagger-codegen) is the one I created and use to generate code from the OAS file.
 
 ## Codespace-Enabled Repo
 

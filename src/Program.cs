@@ -25,15 +25,18 @@ builder.Services.AddSingleton<IOptionsService, OptionsService>();
 #region Add Options
 builder.Services.AddOptions<OneTimeOptions>()
         .Bind(builder.Configuration.GetSection(OneTimeOptions.SectionName))
+        .Configure( o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
 builder.Services.AddOptions<MonitoredOptions>()
         .Bind(builder.Configuration.GetSection(MonitoredOptions.SectionName))
+        .Configure( o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations();
 
 builder.Services.AddOptions<SnapshotOptions>()
         .Bind(builder.Configuration.GetSection(SnapshotOptions.SectionName))
+        .Configure( o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations();
 #endregion
 

@@ -11,6 +11,7 @@ public partial class ConfigurationBase
 
     public string Name { get; set; } = "";
 
+    public string OverriddenInCode { get; set; } = "";
     public string FromEnvironment { get; set; } = "";
 
     [Required]
