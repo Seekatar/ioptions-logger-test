@@ -72,8 +72,17 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 
 - Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
 - Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
+- [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
 - Andrew Lock on [error handling](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
 - Doc for [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails)
+
+## Running Seq Locally
+
+[Seq](https://datalust.co/seq) is a logging aggregate you can run locally for free.
+
+```powershell
+docker run -d --restart unless-stopped --name seq -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
+```
 
 ## Exercising the Endpoints From PowerShell
 

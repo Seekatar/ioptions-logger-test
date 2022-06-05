@@ -4,11 +4,13 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>OptionsLoggerTest</RootNamespace>
+    <RootNamespace>IOptionTest</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Seekatar.Tools" Version="0.1.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.3.1" />
     <PackageReference Include="Serilog" Version="2.11.0-dev-01380" />

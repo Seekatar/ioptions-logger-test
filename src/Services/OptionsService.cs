@@ -23,7 +23,7 @@ namespace OptionsLoggerTest.Services
         {
             try
             {
-                _logger.LogInformation("Monitored output {value}", _monitored.CurrentValue);
+                _logger.LogInformation("Monitored output {value}", _monitored.CurrentValue.Name);
                 return Task.FromResult(_monitored.CurrentValue);
             }
             catch (OptionsValidationException e)
@@ -37,7 +37,7 @@ namespace OptionsLoggerTest.Services
         {
             try
             {
-                _logger.LogInformation("Onetime output {value}", _onetime.Value);
+                _logger.LogInformation("Onetime output {value}", _onetime.Value.Name);
                 return Task.FromResult(_onetime.Value);
             }
             catch (OptionsValidationException e)
