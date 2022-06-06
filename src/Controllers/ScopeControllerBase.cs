@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
+using IOptionTest.Services;
 namespace IOptionTest.Controllers;
 
 /// <summary>
@@ -9,56 +9,23 @@ namespace IOptionTest.Controllers;
 /// </summary>
 public class ScopeControllerBase : ControllerBase
 {
-    private readonly ILogger _logger;
+   private readonly ILogger _logger;
 
-    protected ILogger Logger => _logger;
+   protected ILogger Logger => _logger;
 
-    protected ScopeControllerBase(ILogger logger)
-    {
-        _logger = logger;
-    }
+   protected ScopeControllerBase(ILogger logger)
+   {
+       ScopedLogging.DefaultLogException = (logger, ex) => logger.LogError(ex, ">>>>>>>>Exception");
+       _logger = logger;
+   }
 
-#pragma warning disable CS8603 // Possible null return value.
-    protected T Invoke<T>(Func<T> func, IDictionary<string, object> context)
-    {
-        try
-        {
-            using var scope = _logger.BeginScope(context);
-            return func();
-        }
-        catch (Exception ex) when (LogCaughtException(ex))
-        {
-            // never get here since LogCaughtException returns false
-        }
-        // or here
-        return default;
-    }
-    protected async Task<T> InvokeAsync<T>(Func<Task<T>> func, IDictionary<string, object> context)
-    {
-        try
-        {
-            using var scope = _logger.BeginScope(context);
-            return await func();
-        }
-        catch (Exception ex) when (LogCaughtException(ex))
-        {
-            // never get here since LogCaughtException returns false
-        }
-        // or here
-        return default;
+   protected T Invoke<T>(Func<T> func, IDictionary<string, object> context)
+   {
+       return _logger.Invoke(func,context);
+   }
+   protected async Task<T> InvokeAsync<T>(Func<Task<T>> func, IDictionary<string, object> context)
+   {
+       return await _logger.InvokeAsync(func,context);
 
-    }
-#pragma warning restore CS8603 // Possible null return value.
-
-    protected virtual void LogException(Exception ex)
-    {
-        _logger.LogError(ex, "Exception");
-    }
-
-    protected virtual bool LogCaughtException(Exception ex)
-    {
-        LogException(ex);
-        return false;
-    }
+   }
 }
-
