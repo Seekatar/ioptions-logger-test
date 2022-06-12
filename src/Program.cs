@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -26,18 +27,18 @@ builder.Services.AddSingleton<IOptionsService, OptionsService>();
 #region Add Options
 builder.Services.AddOptions<OneTimeOptions>()
         .Bind(builder.Configuration.GetSection(OneTimeOptions.SectionName))
-        .Configure( o => o.OverriddenInCode = "OverriddenInCode")
+        .Configure(o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
 builder.Services.AddOptions<MonitoredOptions>()
         .Bind(builder.Configuration.GetSection(MonitoredOptions.SectionName))
-        .Configure( o => o.OverriddenInCode = "OverriddenInCode")
+        .Configure(o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations();
 
 builder.Services.AddOptions<SnapshotOptions>()
         .Bind(builder.Configuration.GetSection(SnapshotOptions.SectionName))
-        .Configure( o => o.OverriddenInCode = "OverriddenInCode")
+        .Configure(o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations();
 #endregion
 
@@ -52,7 +53,47 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+
+    // middleware handling (preferred), but don't have scope
+
+    // send to controller that will log
+    // app.UseExceptionHandler("/error-local-development");
+
+    //app.UseExceptionHandler(exceptionApp => {
+
+    //    exceptionApp.Run(async context => {
+    //        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    //        context.Response.ContentType = "application/json";
+
+    //        var contextFeature = context.Features
+    //            .Get<IExceptionHandlerPathFeature>();
+
+    //        if (contextFeature != null)
+    //        {
+    //            try
+    //            {
+    //                var pd = new ProblemDetails
+    //                {
+    //                    Title = "Exception",
+    //                    Detail = contextFeature.Error.Message
+    //                };
+    //                await context.Response.WriteAsJsonAsync(pd);
+    //            } catch
+    //            {
+    //                // ?? if throw, then ASP.NET will log it.
+    //            }
+    //        }
+    //        // it still logs the exception
+    //    });
+    //});
 }
+else
+{
+    // middleware handling (preferred), but don't have scope
+    app.UseExceptionHandler("/error");
+}
+
 
 app.UseHttpsRedirection();
 
@@ -61,6 +102,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.UseMiddleware<CorrelationMiddleware>();
+app.UseMiddleware<MyExceptionMiddleware>();
 
 app.Run();
 public class TestLogger { }
@@ -83,20 +125,21 @@ public class TestLogger { }
 public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter, IDisposable
 {
     private readonly ILogger<ProblemDetailExceptionFilter> _logger;
-    private IDisposable _x;
-    private IDisposable _y;
+    private IDisposable? _serilogContext;
+    private IDisposable? _loggerScope;
 
     public ProblemDetailExceptionFilter(ILogger<ProblemDetailExceptionFilter> logger)
     {
         _logger = logger;
     }
 
-    public int Order => int.MaxValue - 10;
+    public int Order => int.MaxValue - 10; // order this filter executes on (IOrderedFilter impl)
 
     public void OnActionExecuting(ActionExecutingContext context)
     {
         // without using, this works, but with using, it goes out of scope
-        //_x = LogContext.PushProperty("test", "QQQQQQQQQQQQQQQQQQQQQQQQQ");
+
+        //_serilogContext = LogContext.PushProperty("test", "QQQQQQQQQQQQQQQQQQQQQQQQQ");
 
         var scope = new Dictionary<string, object>();
         if (context.ActionArguments.TryGetValue("clientId", out var clientId) && clientId is Guid)
@@ -104,7 +147,7 @@ public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter, IDisp
         if (context.ActionArguments.TryGetValue("marketEntityId", out var marketEntityId) && marketEntityId is int)
             scope.Add("marketEntityId", marketEntityId);
         if (scope.Any())
-            _y = _logger.BeginScope(scope);
+            _loggerScope = _logger.BeginScope(scope);
     }
 
     public void OnActionExecuted(ActionExecutedContext context)
@@ -113,19 +156,20 @@ public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter, IDisp
         {
             // this will have CorrelationId from Middleware context, but not scope in controller.
             _logger.LogError(context.Exception, "InFilter {message}", context.Exception.Message);
-            context.ExceptionHandled = true;
+            
+            context.ExceptionHandled = false; // if true a 200 is sent to client
         }
     }
 
     public void Dispose()
     {
-        if (_x is not null)
+        if (_serilogContext is not null)
         {
-            _x.Dispose();
+            _serilogContext.Dispose();
         }
-        if (_y is not null)
+        if (_loggerScope is not null)
         {
-            _y.Dispose();
+            _loggerScope.Dispose();
         }
     }
 }
