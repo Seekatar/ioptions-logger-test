@@ -110,7 +110,8 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 
 ### Links
 
-* Rico Suter has a blog logging best practices [here](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
+* Rico Suter [blog on logging best practices](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
+* Ben Foster on [blog Serilog best practices](https://benfoster.io/blog/serilog-best-practices)
 * Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
 * [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
 * Andrew Lock on [using .NET6 source generator for logging](https://andrewlock.net/exploring-dotnet-6-part-8-improving-logging-performance-with-source-generators/)

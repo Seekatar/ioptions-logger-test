@@ -5,7 +5,7 @@ namespace IOptionTest.Models;
 /// </summary>
 public class TestContext
 {
-    public Guid CorrelationId { get; set; } = Guid.NewGuid();
+    public Guid ContextId { get; set; } = Guid.NewGuid();
     public string ClientId { get; set; } = "";
     public int MarketEntityId { get; set; }
 
@@ -13,7 +13,7 @@ public class TestContext
     {
         return new Dictionary<string, object>
         {
-            { nameof(CorrelationId), me.CorrelationId },
+            { nameof(ContextId), me.ContextId },
             { nameof(ClientId), me.ClientId },
             { nameof(MarketEntityId), me.MarketEntityId }
         };

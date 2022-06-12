@@ -7,6 +7,7 @@ using OptionsLoggerTest.Interfaces;
 using OptionsLoggerTest.Services;
 using Seekatar.Tools;
 using Serilog;
+using Serilog.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.InsertSharedDevSettings();
@@ -59,6 +60,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.UseMiddleware<CorrelationMiddleware>();
+
 app.Run();
 public class TestLogger { }
 
@@ -77,9 +80,11 @@ public class TestLogger { }
 ///  });
 /// </code>
 /// </example>
-public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter
+public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter, IDisposable
 {
     private readonly ILogger<ProblemDetailExceptionFilter> _logger;
+    private IDisposable _x;
+    private IDisposable _y;
 
     public ProblemDetailExceptionFilter(ILogger<ProblemDetailExceptionFilter> logger)
     {
@@ -90,14 +95,37 @@ public class ProblemDetailExceptionFilter : IActionFilter, IOrderedFilter
 
     public void OnActionExecuting(ActionExecutingContext context)
     {
+        // without using, this works, but with using, it goes out of scope
+        //_x = LogContext.PushProperty("test", "QQQQQQQQQQQQQQQQQQQQQQQQQ");
+
+        var scope = new Dictionary<string, object>();
+        if (context.ActionArguments.TryGetValue("clientId", out var clientId) && clientId is Guid)
+            scope.Add("clientId", clientId);
+        if (context.ActionArguments.TryGetValue("marketEntityId", out var marketEntityId) && marketEntityId is int)
+            scope.Add("marketEntityId", marketEntityId);
+        if (scope.Any())
+            _y = _logger.BeginScope(scope);
     }
 
     public void OnActionExecuted(ActionExecutedContext context)
     {
         if (context.Exception is not null)
         {
-            // _logger.LogError(context.Exception, "InFilter {message}", context.Exception.Message);
+            // this will have CorrelationId from Middleware context, but not scope in controller.
+            _logger.LogError(context.Exception, "InFilter {message}", context.Exception.Message);
             context.ExceptionHandled = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_x is not null)
+        {
+            _x.Dispose();
+        }
+        if (_y is not null)
+        {
+            _y.Dispose();
         }
     }
 }

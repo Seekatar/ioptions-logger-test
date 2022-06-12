@@ -14,6 +14,7 @@ using OptionsLoggerTest.Interfaces;
 using OptionLoggerTest;
 using Microsoft.Extensions.Options;
 using IOptionTest.Models;
+using Seekatar.Tools; 
 
 namespace IOptionTest.Controllers;
 
@@ -47,7 +48,7 @@ public class OptionsApiController : ObjectScopeControllerBase<TestContext>
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual async Task<ActionResult<MonitoredOptions>> GetIMonitoredOptions()
     {
-        return await InvokeAsync(GetContext(), async () =>
+        return await Logger.InvokeAsync(GetContext(), async () =>
         {
             return Ok(await _optionsService.GetMonitoredOptions());
         });
@@ -65,7 +66,7 @@ public class OptionsApiController : ObjectScopeControllerBase<TestContext>
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual async Task<ActionResult<OneTimeOptions>> GetIOptions()
     {
-        return await InvokeAsync(GetContext(), async () =>
+        return await Logger.InvokeAsync(GetContext(), async () =>
         {
             return Ok(await _optionsService.GetOneTimeOptions());
         });
@@ -83,7 +84,7 @@ public class OptionsApiController : ObjectScopeControllerBase<TestContext>
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual ActionResult<SnapshotOptions> GetISnapshotOptions()
     {
-        return Invoke(GetContext(), () =>
+        return Logger.Invoke(GetContext(), () =>
         {
             Logger.LogInformation("Getting value {value}", _snapshot.Value.Name);
             return Ok(_snapshot.Value);
@@ -96,13 +97,13 @@ public class OptionsApiController : ObjectScopeControllerBase<TestContext>
     /// <response code="200">Ok</response>
     /// <response code="400">bad input parameter</response>
     [HttpGet]
-    [Route("/api/options/throw")]
+    [Route("/api/options/throw/{clientId:guid}/{marketEntityId:int}")]
     [ValidateModelState]
     [SwaggerOperation("GetISnapshotOptionsThrow")]
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-    public virtual ActionResult<SnapshotOptions> GetISnapshotOptionsThrow()
+    public virtual ActionResult<SnapshotOptions> GetISnapshotOptionsThrow(Guid clientId, int marketEntityId)
     {
-        return Invoke(GetContext(), () =>
+        return Logger.Invoke(GetContext(), () =>
         {
             Logger.LogInformation("Getting value {value}", _snapshot.Value.Name);
             throw new NotImplementedException("This is a test");
