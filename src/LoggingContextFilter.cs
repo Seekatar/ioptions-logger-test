@@ -17,7 +17,6 @@
 public class LoggingContextFilter : IActionFilter, IOrderedFilter, IDisposable
 {
     private readonly ILogger<LoggingContextFilter> _logger;
-    private IDisposable? _serilogContext;
     private IDisposable? _loggerScope;
 
     public LoggingContextFilter(ILogger<LoggingContextFilter> logger)
@@ -25,14 +24,11 @@ public class LoggingContextFilter : IActionFilter, IOrderedFilter, IDisposable
         _logger = logger;
     }
 
-    public int Order => int.MaxValue - 10; // order this filter executes on (IOrderedFilter impl)
+    // per doc: ... filter specifies an Order of the maximum integer value minus 10. This Order allows other filters to run at the end of the pipeline.
+    public int Order => int.MaxValue - 10; 
 
     public void OnActionExecuting(ActionExecutingContext context)
     {
-        // without using, this works, but with using, it goes out of scope
-
-        //_serilogContext = LogContext.PushProperty("test", "QQQQQQQQQQQQQQQQQQQQQQQQQ");
-
         var scope = new Dictionary<string, object>();
         if (context.ActionArguments.TryGetValue("clientId", out var clientId) && clientId is Guid)
             scope.Add("clientId", clientId);
@@ -55,10 +51,6 @@ public class LoggingContextFilter : IActionFilter, IOrderedFilter, IDisposable
 
     public void Dispose()
     {
-        if (_serilogContext is not null)
-        {
-            _serilogContext.Dispose();
-        }
         if (_loggerScope is not null)
         {
             _loggerScope.Dispose();
