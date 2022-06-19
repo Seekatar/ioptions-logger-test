@@ -9,7 +9,8 @@
  */
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using IO.Swagger.Attributes;
+using IOptionTest.Models;
+using IOptionTest.Attributes;
 
 namespace IOptionTest.Controllers
 {

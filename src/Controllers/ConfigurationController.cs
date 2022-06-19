@@ -9,8 +9,9 @@
  */
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using IO.Swagger.Attributes;
-using OptionsLoggerTest.Interfaces;
+using IOptionTest.Interfaces;
+using IOptionTest.Models;
+using IOptionTest.Attributes;
 
 namespace IOptionTest.Controllers
 {

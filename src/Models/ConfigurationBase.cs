@@ -1,12 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace IOptionTest;
+namespace IOptionTest.Models;
 
 public partial class ConfigurationBase
 {
     public ConfigurationBase()
     {
-        Name = this.GetType().Name;
+        Name = GetType().Name;
     }
 
     public string Name { get; set; } = "";

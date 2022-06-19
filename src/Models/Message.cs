@@ -16,7 +16,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 using System.Text.Json;
 
-namespace IOptionTest
+namespace IOptionTest.Models
 {
     /// <summary>
     /// Message to send
@@ -29,7 +29,7 @@ namespace IOptionTest
         /// </summary>
         [Required]
 
-        [DataMember(Name="message")]
+        [DataMember(Name = "message")]
         public string _Message { get; set; }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace IOptionTest
         /// </summary>
         [Required]
 
-        [DataMember(Name="level")]
+        [DataMember(Name = "level")]
         public LogLevel Level { get; set; }
 
         /// <summary>
@@ -107,16 +107,16 @@ namespace IOptionTest
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                    if (_Message != null)
+                if (_Message != null)
                     hashCode = hashCode * 59 + _Message.GetHashCode();
 
-                    hashCode = hashCode * 59 + Level.GetHashCode();
+                hashCode = hashCode * 59 + Level.GetHashCode();
                 return hashCode;
             }
         }
 
         #region Operators
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
         public static bool operator ==(Message left, Message right)
         {
@@ -128,7 +128,7 @@ namespace IOptionTest
             return !Equals(left, right);
         }
 
-        #pragma warning restore 1591
+#pragma warning restore 1591
         #endregion Operators
     }
 }

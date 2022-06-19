@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using OptionLoggerTest;
-using OptionsLoggerTest.Interfaces;
+﻿using IOptionTest.Interfaces;
+using IOptionTest.Options;
+using Microsoft.Extensions.Options;
 
-namespace OptionsLoggerTest.Services
+namespace IOptionTest.Services
 {
     public class OptionsService : IOptionsService
     {
@@ -10,7 +10,7 @@ namespace OptionsLoggerTest.Services
         private readonly IOptionsMonitor<MonitoredOptions> _monitored;
         private readonly IOptions<OneTimeOptions> _onetime;
 
-        public OptionsService( IOptionsMonitor<MonitoredOptions> monitored,
+        public OptionsService(IOptionsMonitor<MonitoredOptions> monitored,
                                IOptions<OneTimeOptions> onetime,
                                ILogger<OptionsService> logger)
         {

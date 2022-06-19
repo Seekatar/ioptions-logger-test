@@ -1,6 +1,7 @@
+using Hellang.Middleware.ProblemDetails;
 using Serilog.Context;
 
-namespace Seekatar.Tools;
+namespace IOptionTest.Logging;
 
 #pragma warning disable CS8603 // Possible null return value.
 public static class LoggerExtensions
@@ -42,6 +43,34 @@ public static class LoggerExtensions
             LogCaughtException(logger, ex);
             throw;
         }
+    }
+
+    public static T InvokeLogged<T>(this ILogger logger, Func<T> func) where T : class
+    {
+        try
+        {
+            return func();
+        }
+        catch (Exception ex) when (LogCaughtException(logger, ex))
+        {
+            // never get here since LogCaughtException returns false
+        }
+        // or here
+        return default;
+    }
+
+    public static async Task<T> InvokeLoggedAsync<T>(this ILogger logger, Func<Task<T>> func) where T : class
+    {
+        try
+        {
+            return await func();
+        }
+        catch (Exception ex) when (LogCaughtException(logger, ex))
+        {
+            // never get here since LogCaughtException returns false
+        }
+        // or here
+        return default;
     }
 
     public static async Task<T> InvokeAsync<T>(this ILogger logger, object state, Func<Task<T>> func) where T : class
@@ -93,7 +122,13 @@ public static class LoggerExtensions
 
     static bool LogCaughtException(ILogger logger, Exception ex)
     {
-        logger.LogError(ex, "Exception");
+        if (ex is ProblemDetailsException pde)
+        {
+            logger.LogException(LogLevel.Error, pde);
+        }else
+        {
+            logger.LogError(ex, "Exception");
+        }
         return false;
     }
 }

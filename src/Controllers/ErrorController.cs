@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using Hellang.Middleware.ProblemDetails;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IOptionTest.Controllers
@@ -51,9 +52,16 @@ namespace IOptionTest.Controllers
             var exceptionHandlerFeature =
                 HttpContext.Features.Get<IExceptionHandlerFeature>()!;
 
-            return Problem(
-                detail: exceptionHandlerFeature.Error.StackTrace,
-                title: exceptionHandlerFeature.Error.Message);
+            if (exceptionHandlerFeature.Error is ProblemDetailsException pd)
+            {
+                return Problem(pd.Details.Detail, pd.Details.Instance, pd.Details.Status, pd.Details.Title, pd.Details.Type);
+            }
+            else
+            {
+                return Problem(
+                    title: "An unhandled exception has occurred while executing the request (in Error Controller)!",
+                    detail: exceptionHandlerFeature.Error.Message);
+            }
         }
 
     }

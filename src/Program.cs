@@ -1,10 +1,16 @@
+using Hellang.Middleware.ProblemDetails;
+using IOptionTest;
+using IOptionTest.Interfaces;
+using IOptionTest.Options;
+using IOptionTest.Services;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using OptionLoggerTest;
-using OptionsLoggerTest.Interfaces;
-using OptionsLoggerTest.Services;
 using Seekatar.Tools;
 using Serilog;
+using System.Net;
+
+var exceptionHandler = ExceptionHandlerEnum.UseHellang;
+bool useExceptionLoggingFilter = false; // this will cause some redundant logging, but you get the idea
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.InsertSharedDevSettings();
@@ -13,7 +19,27 @@ builder.Configuration.InsertSharedDevSettings();
 builder.Host.UseSerilog((ctx, loggerConfig) => loggerConfig.ReadFrom.Configuration(builder.Configuration));
 #endregion
 
-builder.Services.AddControllers(options => { options.Filters.Add<LoggingContextFilter>(); });
+if (exceptionHandler == ExceptionHandlerEnum.UseHellang)
+{
+    if (useExceptionLoggingFilter)
+        builder.Services.AddProblemDetails(opts =>
+        {
+            opts.ShouldLogUnhandledException = (context, exception, details) =>
+            {
+                return false;
+            };
+        });
+    else
+        builder.Services.AddProblemDetails();
+}
+
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<LoggingContextFilter>();
+    if (useExceptionLoggingFilter)
+        options.Filters.Add<ProblemDetailsExceptionFilter>();
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -41,14 +67,18 @@ builder.Services.AddOptions<SnapshotOptions>()
 var app = builder.Build();
 
 
+if (exceptionHandler == ExceptionHandlerEnum.UseHellang)
+{
+    app.UseProblemDetails(); // Add the middleware
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-var exceptionHandler = ExceptionHanderEnum.UseExceptionHandler;
-if (exceptionHandler == ExceptionHanderEnum.UseExceptionHandler)
+if (exceptionHandler == ExceptionHandlerEnum.UseExceptionHandler)
 {
     // using this by itself converts to Problem details, but still logs w/o context {application/json; charset=utf-8}
     app.UseExceptionHandler(errorApp =>
@@ -58,19 +88,27 @@ if (exceptionHandler == ExceptionHanderEnum.UseExceptionHandler)
             var exceptionDetails = context.Features.Get<IExceptionHandlerFeature>();
             var ex = exceptionDetails?.Error;
 
-            var pd = new ProblemDetails
+            ProblemDetails pd;
+            if (ex is ProblemDetailsException pde)
             {
-                Title = "Exception",
-                Detail = ex?.Message ?? "Huh?"
-            };
-            context.Response.StatusCode = 401;
+                pd = pde.Details;
+            }
+            else
+            {
+                pd = new ProblemDetails()
+                {
+                    Status = (int)HttpStatusCode.InternalServerError,
+                    Title = "An unhandled exception has occurred while executing the request (in UseExceptionHandler)!",
+                    Detail = ex?.StackTrace
+                };
+            }
             await context.Response.WriteAsJsonAsync(pd);
         });
     });
 }
 
 // kinda works, but sends it  {application/problem+json; charset=utf-8} encoded and logs w/o context
-if (exceptionHandler == ExceptionHanderEnum.UsePages) 
+if (exceptionHandler == ExceptionHandlerEnum.UsePages)
 {
     if (app.Environment.IsDevelopment())
     {
@@ -90,10 +128,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.UseMiddleware<CorrelationMiddleware>(); // pull correlation from middleware to add to scope
+app.UseMiddleware<CorrelationMiddleware>(); // pull correlation from headers in middleware to add to scope
 
 // this changes it to a ProblemDetails, but doesn't log
-if (exceptionHandler == ExceptionHanderEnum.UseMyMiddleWare)
+if (exceptionHandler == ExceptionHandlerEnum.UseMyMiddleWare)
 {
     app.UseMiddleware<MyExceptionMiddleware>();
 }
@@ -101,9 +139,10 @@ if (exceptionHandler == ExceptionHanderEnum.UseMyMiddleWare)
 app.Run();
 
 #pragma warning restore CA2254
-enum ExceptionHanderEnum
+enum ExceptionHandlerEnum
 {
     UseExceptionHandler,
     UsePages,
-    UseMyMiddleWare
+    UseMyMiddleWare,
+    UseHellang
 };

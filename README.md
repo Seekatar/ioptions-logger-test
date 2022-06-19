@@ -1,4 +1,27 @@
-# IConfiguration & IOptions & ILogger Test
+# IConfiguration & IOptions & ILogger Test <!-- omit in toc -->
+
+- [IConfiguration](#iconfiguration)
+  - [ASP.NET's Default IConfiguration](#aspnets-default-iconfiguration)
+  - [Syntax for Values](#syntax-for-values)
+  - [JSON Files](#json-files)
+  - [Environment Variables](#environment-variables)
+  - [Command Line](#command-line)
+- [Options Pattern](#options-pattern)
+  - [Options Validation Using Attributes](#options-validation-using-attributes)
+- [ILogger](#ilogger)
+- [Test App's Endpoints](#test-apps-endpoints)
+- [Running Seq Locally To View Semantic Logs](#running-seq-locally-to-view-semantic-logs)
+- [Exercising the Endpoints From PowerShell](#exercising-the-endpoints-from-powershell)
+- [Console Apps](#console-apps)
+- [Generating Code From the OAS file](#generating-code-from-the-oas-file)
+- [Scoped Logging](#scoped-logging)
+- [Returning ProblemDetails from a Controller](#returning-problemdetails-from-a-controller)
+  - [Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)](#using-hellangs-middleware-exceptionhandlerenumusehellang)
+  - [Error Pages (ExceptionHandlerEnum.UsePages)](#error-pages-exceptionhandlerenumusepages)
+  - [Function to Handle Error (ExceptionHandlerEnum.UseExceptionHandler)](#function-to-handle-error-exceptionhandlerenumuseexceptionhandler)
+  - [Custom Middleware (ExceptionHandlerEnum.UseMyMiddleWare)](#custom-middleware-exceptionhandlerenumusemymiddleware)
+- [Codespace-Enabled Repo](#codespace-enabled-repo)
+  - [Links](#links)
 
 This repo has tests for `IOptions`, `IConfiguration`, and `ILogger`. This sample ASP.NET app demonstrates the topics briefly described below.
 
@@ -78,9 +101,9 @@ dotnet run --MyKey="Using --" --Snapshot:FromEnvironment=test
 
 The Option pattern uses IConfiguration, but binds a POCO to a configuration section. The POCO is wrapper with in IOption* interface, which can be injected into any class. There are three flavors:
 
-* [IOptions&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptions-1) are read once, the first time accessed.
-* [IOptionsMonitor&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionsmonitor-1) are read each time and are a singleton.
-* [IOptionsSnapshot&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionssnapshot-1) are read each time and are a scopes so can be injected anywhere.
+- [IOptions&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptions-1) are read once, the first time accessed.
+- [IOptionsMonitor&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionsmonitor-1) are read each time and are a singleton.
+- [IOptionsSnapshot&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionssnapshot-1) are read each time and are a scopes so can be injected anywhere.
 
 ### Options Validation Using Attributes
 
@@ -108,18 +131,7 @@ There are many sinks available, even one for Sentry (commented out in this sampl
 | /api/options/throw     | Sample to throw an error to demonstration logging scope   |
 | /api/logger            | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL |
 
-### Links
-
-* Rico Suter [blog on logging best practices](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
-* Ben Foster on [blog Serilog best practices](https://benfoster.io/blog/serilog-best-practices)
-* Andrew Lock has a [post](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/) about using BeginScope and the trick to use them when exceptions are thrown
-* [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
-* Andrew Lock on [using .NET6 source generator for logging](https://andrewlock.net/exploring-dotnet-6-part-8-improving-logging-performance-with-source-generators/)
-* Andrew Lock on [error handling](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
-* Doc for [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails)
-* Andrew Lock on [using named configration sections](https://andrewlock.net/using-multiple-instances-of-strongly-typed-settings-with-named-options-in-net-core-2-x/). This repo doesn't demonstrate this, but this blog shows how you can create one POCO, and register multiple named instances of it in the configuration.
-
-## Running Seq Locally
+## Running Seq Locally To View Semantic Logs
 
 This repo logs to [Seq](https://datalust.co/seq) by default. Seq is a logging aggregator that you can run locally to see friendly versions of semantic logs.
 
@@ -133,10 +145,10 @@ Then hit http://localhost:5341/#/events to see the logs.
 
 There some helper scripts in the root
 
-* ./c.ps1 # IConfiguration config
-* ./o.ps1 # IOptions
-* ./a.ps1 # all config
-* ./l.ps1 # logging
+- ./c.ps1 # IConfiguration config
+- ./o.ps1 # IOptions
+- ./a.ps1 # all config
+- ./l.ps1 # logging
 
 ## Console Apps
 
@@ -146,12 +158,163 @@ All of this can also be used in Console apps, but requires a bit more code since
 
 I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://github.com/Seekatar/swagger-codegen) is the one I created and use to generate code from the OAS file.
 
+## Scoped Logging
+
+Often when logging, you want all logged messages to have a `CorrelationId` or some other piece of data for the life of the request. I've done this before with a bunch of `ILogger` extension methods that took an additional parameter. A better way is to use `ILogger.BeginScope`. This method takes a dictionary and adds all the values to each log message. If you are using Serilog and semantic logging such as for ElasticSearch or Seq, all the values appear in the log for filtering and searching.
+
+If your correlation id is in the headers, you can add middleware to create a scope for the request. Since `BeginScope` returns an `IDisposable`, you have to dispose of it properly. The [CorrelationMiddleware.cs](src/Logging/CorrelationMiddleware.cs) sample code shows doing this.
+
+If your correlation values are passed in on the path, you can still use middleware, but the parsing of the url may be complex. Another way to get those values is to use an `IActionFilter` to get the already parsed values and create a scope. The [LoggingContextFilter.cs](src/LoggingContextFilter.cs) sample shows doing this.
+
+You can also create a scope in the controller manually. Here's a log using that method that has the `clientId` and `marketEntityId` from the path (filter adds those), and the `CorrelationId` from the headers (middleware added it).
+
+![log_with_scopes](doc/log_scopes.png)
+
+There is a catch to using scopes when an exception is thrown. In the catch processing and thereafter, all your scopes are disposed, so the extra details are lost. There are a couple ways to handle this. One is to use `catch () when` and call a function to log in the function called in `when` since the scopes are still alive then. The [LoggerExtensions](src/Logging/LoggerExtensions.cs) has methods that various flavors of that technique.
+
+This is the pattern. `LogCaughtException` logs the exception with the `logger` and the scopes will be logged.
+
+```csharp
+try {
+    return await func();
+} catch (Exception ex) when (LogCaughtException(logger, ex)) {
+    // never get here since LogCaughtException returns false
+}
+// or here
+```
+
+Here's a log using that method that has the `clientId` and `marketEntityId` from the path (filter adds those), and the `CorrelationId` from the headers (middleware added it).
+
+Another way is to not log when you catch, but use an `IActionFilter` to log. [ProblemDetailsExceptionFilter](src/ProblemDetailsExceptionFilter.cs) does this. `Program.cs` has a switch to turn it on, but since some exceptions are logged then thrown, this will cause some duplicate logs -- in this sample. It does have the advantage that any thrown exception gets the scopes, as opposed to ones you may wrap with a logger extension method.
+
+![log_when](./doc/log_when.png)
+
+## Returning ProblemDetails from a Controller
+
+The .NET [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) class conforms to the [RFC7807](https://tools.ietf.org/html/rfc7807) standard for returning errors from an API. ASP.NET Core also has a [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem) method to return a `ProblemDetails` object from a controller.
+
+If you throw an exception that includes `ProblemDetails` you can add addition details via the `Extensions` (`Dict<string,object?>`) property to help the client to get clearer error data, as opposed to just a string. In the sample code I throw a `ProblemDetailsException` and add an `a` detail property to it.
+
+There are various ways you can handle errors and return `ProblemDetails` from an API. The sample code's [Program.cs](src/Program.cs) has a variable as the top that can be switch to turn on any of the four methods described below.
+
+### Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)
+
+One of the easiest methods is to use the library from Kristian Hellang's [ProblemDetails](https://www.nuget.org/packages/Hellang.Middleware.ProblemDetails) nuget package. Andrew Lock's [blog post](https://andrewlock.net/handling-web-api-exceptions-with-problemdetails-middleware/) about it has pretty good directions (better than the README). This package also includes a `ProblemDetailsException` class that can be used to throw `ProblemDetails`.
+
+The middleware catches errors, and converts them to a `ProblemDetails` object. It is a bit opinionated about the format of the data, which differs in development vs production modes. If you throw a `ProblemDetailsException`, it will be returned as is.
+
+`ProblemDetailsException` thrown with 400, get 400
+
+```json
+type    : about:blank
+title   : Throwing Problem Details
+status  : 400
+detail  : My detail message, look for a and status of 400
+a       : 1232
+traceId : 00-e55573dbe4e776df95e120dcbc1638d4-50e136440bb69152-00
+```
+
+`NotImplementedException` thrown. In this case the `ProblemDetails` object is created by the middleware.
+
+```json
+type             : https://httpstatuses.io/500
+title            : Internal Server Error
+status           : 500
+detail           : This is not implemented
+exceptionDetails : ... call stack details when in development mode ...
+```
+
+### Error Pages (ExceptionHandlerEnum.UsePages)
+
+This method uses [UseExceptionHandler](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.exceptionhandlerextensions.useexceptionhandler) to set up [error pages](src/Controllers/ErrorController.cs) that can return a `ProblemDetails` object by getting an exception and returning `Results.Problem`. This gives you full control about the data returned by the error page.
+
+`ProblemDetailsException` thrown with 400, get 400
+
+```json
+type    : about:blank
+title   : Throwing Problem Details
+status  : 400
+detail  : My detail message, look for a and status of 400
+traceId : 00-8c07a54aab905162f61901971b8dd1df-dc7e3ea845290854-00
+```
+
+`NotImplementedException` thrown
+
+```json
+type    : https://tools.ietf.org/html/rfc7231#section-6.6.1
+title   : An unhandled exception has occurred while executing the request (in Error Controller)!
+status  : 500
+detail  : My function is not implemented
+traceId : 00-56d562252463ce9cb1a000ff7f42d412-508e97dc3fd39141-00
+```
+
+### Function to Handle Error (ExceptionHandlerEnum.UseExceptionHandler)
+
+Like the previous method, this uses [UseExceptionHandler](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.exceptionhandlerextensions.useexceptionhandler), but passes in a function to handle the error in `program.cs`.
+
+`ProblemDetailsException` thrown with 400, get 500(!)
+
+```json
+type   : about:blank
+title  : Throwing Problem Details
+status : 400
+detail : My detail message, look for a and status of 400
+a      : 1232
+```
+
+`NotImplementedException` thrown
+
+```json
+title   : An unhandled exception has occurred while executing the request (in UseExceptionHandler)!
+status  : 500
+detail  : ...call stack...
+```
+
+### Custom Middleware (ExceptionHandlerEnum.UseMyMiddleWare)
+
+[MyExceptionMiddleware.cs](src/MyExceptionMiddleware.cs) does the same as in the Hellang middleware, but in a more naive approach, and is problematic, but does give you an idea of another way to handle errors.
+
+`ProblemDetailsException` thrown with 400, get 400
+
+```json
+type   : about:blank
+title  : Throwing Problem Details
+status : 400
+detail : My detail message, look for a and status of 400
+a      : 1232
+```
+
+`NotImplementedException` thrown
+
+```json
+title   : Exception
+status  : 500
+detail  : My function is not implemented
+```
+
 ## Codespace-Enabled Repo
 
 [Codespaces](https://github.com/features/codespaces) were announced May 2020. I immediately signed up to be in the beta, and I was finally included two years later. This repo is enabled to use Codespaces, and the `.devcontainer` folder had the customization for running this app.
 
 Click [here](https://github.com/features/codespaces/signup?utm_source=visualstudio.microsoft.com&utm_medium=referral&utm_campaign=vscs) to sign up for the beta.
 
-## My Blog
+### Links
 
-I randomly blog [here](https://seekatar.github.io/) using GitHub and Jekyll.
+- My blog [here](https://seekatar.github.io/) using GitHub and Jekyll.
+- Rico Suter [blog on logging best practices](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
+- Ben Foster on [blog Serilog best practices](https://benfoster.io/blog/serilog-best-practices)
+- [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
+  - [Do's and Don't For Serilog](https://esg.dev/posts/serilog-dos-and-donts/) explains @t, @m, @x in JSON
+- Andrew Lock
+  - [Blog about using BeginScope and the trick to use 'catch...when'](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/)
+  - [Using .NET6 source generator for logging](https://andrewlock.net/exploring-dotnet-6-part-8-improving-logging-performance-with-source-generators/)
+  - [Error Handling with custom middleware](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
+  - [Handling Web API Exceptions with ProblemDetails middleware](https://andrewlock.net/handling-web-api-exceptions-with-problemdetails-middleware/) talks about using Hellang's NuGet package for ProblemDetails
+  - [Custom Logging](https://andrewlock.net/defining-custom-logging-messages-with-loggermessage-define-in-asp-net-core/)
+  - [Using named configuration sections](https://andrewlock.net/using-multiple-instances-of-strongly-typed-settings-with-named-options-in-net-core-2-x/). This repo doesn't demonstrate this, but this blog shows how you can create one POCO, and register multiple named instances of it in the configuration.
+  - [Using scopes](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/)
+- Microsoft Doc
+  - [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails)
+  - [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem)
+  - [ExceptionHandlerExtensions.UseExceptionHandler](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.exceptionhandlerextensions.useexceptionhandler)
+  - [High-performance logging with LoggerMessage in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/loggermessage)

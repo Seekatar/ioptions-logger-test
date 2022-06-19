@@ -9,12 +9,12 @@
  */
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using IO.Swagger.Attributes;
-using OptionsLoggerTest.Interfaces;
-using OptionLoggerTest;
 using Microsoft.Extensions.Options;
 using IOptionTest.Models;
-using Seekatar.Tools; 
+using IOptionTest.Options;
+using IOptionTest.Logging;
+using IOptionTest.Interfaces;
+using IOptionTest.Attributes;
 
 namespace IOptionTest.Controllers;
 
@@ -88,28 +88,6 @@ public class OptionsApiController : ObjectScopeControllerBase<TestContext>
         {
             Logger.LogInformation("Getting value {value}", _snapshot.Value.Name);
             return Ok(_snapshot.Value);
-        });
-    }
-
-    /// <summary>
-    /// Get IOptions values using snapshot
-    /// </summary>
-    /// <response code="200">Ok</response>
-    /// <response code="400">bad input parameter</response>
-    [HttpGet]
-    [Route("/api/options/throw/{clientId:guid}/{marketEntityId:int}")]
-    [ValidateModelState]
-    [SwaggerOperation("GetISnapshotOptionsThrow")]
-    [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-    public virtual ActionResult<SnapshotOptions> GetISnapshotOptionsThrow(Guid clientId, int marketEntityId)
-    {
-        return Logger.Invoke(GetContext(), () =>
-        {
-            Logger.LogInformation("Getting value {value}", _snapshot.Value.Name);
-            throw new NotImplementedException("This is a test");
-#pragma warning disable CS0162 // Unreachable code detected but need return for type inference
-            return Ok(_snapshot.Value);
-#pragma warning restore CS0162
         });
     }
 }

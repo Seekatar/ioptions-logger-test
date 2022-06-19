@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Hellang.Middleware.ProblemDetails;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 public class MyExceptionMiddleware
 {
@@ -21,13 +23,25 @@ public class MyExceptionMiddleware
             {
                 ex = aggr.InnerExceptions[0];
             }
-            var pd = new ProblemDetails
+
+            if (ex is ProblemDetailsException pde)
             {
-                Title = "Exception",
-                Detail = ex.Message
-            };
-            context.Response.StatusCode = 402;
-            await context.Response.WriteAsJsonAsync(pd);
+                context.Response.StatusCode = pde.Details.Status ?? (int)HttpStatusCode.InternalServerError;
+                await context.Response.WriteAsJsonAsync(pde.Details);
+            }
+            else
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                var pd = new ProblemDetails
+                {
+                    Title = "Exception",
+                    Detail = ex.Message,
+                    Status = context.Response.StatusCode
+                };
+                await context.Response.WriteAsJsonAsync(pd);
+
+                // throw; // logs this, but also two other errors about response already started
+            }
         }
     }
 }

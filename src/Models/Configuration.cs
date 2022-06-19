@@ -15,7 +15,7 @@ using System.Text;
 using System.Runtime.Serialization;
 using System.Text.Json;
 
-namespace IOptionTest
+namespace IOptionTest.Models
 {
     /// <summary>
     ///
@@ -86,7 +86,7 @@ namespace IOptionTest
         }
 
         #region Operators
-        #pragma warning disable 1591
+#pragma warning disable 1591
 
         public static bool operator ==(Configuration left, Configuration right)
         {
@@ -98,7 +98,7 @@ namespace IOptionTest
             return !Equals(left, right);
         }
 
-        #pragma warning restore 1591
+#pragma warning restore 1591
         #endregion Operators
     }
 }
