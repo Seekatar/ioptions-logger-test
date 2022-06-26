@@ -15,6 +15,7 @@
 - [Console Apps](#console-apps)
 - [Generating Code From the OAS file](#generating-code-from-the-oas-file)
 - [Scoped Logging](#scoped-logging)
+- [Using LoggerMessage for High-Performance Logging](#using-loggermessage-for-high-performance-logging)
 - [Returning ProblemDetails from a Controller](#returning-problemdetails-from-a-controller)
   - [Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)](#using-hellangs-middleware-exceptionhandlerenumusehellang)
   - [Error Pages (ExceptionHandlerEnum.UsePages)](#error-pages-exceptionhandlerenumusepages)
@@ -81,7 +82,7 @@ These are pretty straightforward. For complex objects, you may combine the level
 
 ### [Environment Variables](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration#evcp)
 
-Windows will tolerate colon separators, but it is best to always use double underscores, especially if you will be deploying to Linux, Mac or Linux containers.
+Windows will tolerate colon separators, but it is best to always use double underscores, especially if you will be deploying to Linux, Mac, or Linux containers.
 
 ```powershell
 $env:OneTime__FromEnvironment = "EnvironmentSettings5"
@@ -99,7 +100,7 @@ dotnet run --MyKey="Using --" --Snapshot:FromEnvironment=test
 
 ## [Options Pattern](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/configuration/options)
 
-The Option pattern uses IConfiguration, but binds a POCO to a configuration section. The POCO is wrapper with in IOption* interface, which can be injected into any class. There are three flavors:
+The Option pattern uses IConfiguration but binds a POCO to a configuration section. The POCO is a wrapper with an IOption* interface, which can be injected into any class. There are three flavors:
 
 - [IOptions&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptions-1) are read once, the first time accessed.
 - [IOptionsMonitor&lt;TOptions&gt;](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.options.ioptionsmonitor-1) are read each time and are a singleton.
@@ -113,9 +114,9 @@ Using `ValidateDataAnnotations` when registering options in `program.cs` will va
 
 ASP.NET has [ILogger](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.ilogger) configured out of the box. This app adds a line of code to add [Serilog](https://serilog.net/) support that adds a wide range of options, formatters, and sinks.
 
-All the configuration is done via the `IConfiguation` so you can have local development setup logging in `appsettings.Development.json` to override default logging setup in `appsettings.json`.
+All the configuration is done via the `IConfiguation` so you can have local development setup logging in `appsettings.Development.json` to override the default logging setup in `appsettings.json`.
 
-In this program for dev logging is to the console, in human readable format, whereas `appsettings.json` is set for using ElasticSearch logging. Log levels are read periodically so you can change them without restarting the app.
+In this program, dev logging is to the console, in human-readable format, whereas `appsettings.json` is set for using ElasticSearch logging. Log levels are read periodically so you can change them without restarting the app.
 
 There are many sinks available, even one for Sentry (commented out in this sample) so you can configure all Error-level messages to automatically be sent there.
 
@@ -143,7 +144,7 @@ Then hit http://localhost:5341/#/events to see the logs.
 
 ## Exercising the Endpoints From PowerShell
 
-There some helper scripts in the root
+There are some helper scripts in the root
 
 - ./c.ps1 # IConfiguration config
 - ./o.ps1 # IOptions
@@ -158,6 +159,10 @@ All of this can also be used in Console apps, but requires a bit more code since
 
 I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://github.com/Seekatar/swagger-codegen) is the one I created and use to generate code from the OAS file.
 
+```powershell
+../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
+```
+
 ## Scoped Logging
 
 Often when logging, you want all logged messages to have a `CorrelationId` or some other piece of data for the life of the request. I've done this before with a bunch of `ILogger` extension methods that took an additional parameter. A better way is to use `ILogger.BeginScope`. This method takes a dictionary and adds all the values to each log message. If you are using Serilog and semantic logging such as for ElasticSearch or Seq, all the values appear in the log for filtering and searching.
@@ -170,7 +175,7 @@ You can also create a scope in the controller manually. Here's a log using that 
 
 ![log_with_scopes](doc/log_scopes.png)
 
-There is a catch to using scopes when an exception is thrown. In the catch processing and thereafter, all your scopes are disposed, so the extra details are lost. There are a couple ways to handle this. One is to use `catch () when` and call a function to log in the function called in `when` since the scopes are still alive then. The [LoggerExtensions](src/Logging/LoggerExtensions.cs) has methods that various flavors of that technique.
+There is a catch to using scopes when an exception is thrown. In the catch processing and thereafter, all your scopes are disposed, so the extra details are lost. There are a couple of ways to handle this. One is to use `catch () when` and call a function to log in the function called in `when` since the scopes are still alive then. The [LoggerExtensions](src/Logging/LoggerExtensions.cs) has methods that various flavors of that technique.
 
 This is the pattern. `LogCaughtException` logs the exception with the `logger` and the scopes will be logged.
 
@@ -185,23 +190,54 @@ try {
 
 Here's a log using that method that has the `clientId` and `marketEntityId` from the path (filter adds those), and the `CorrelationId` from the headers (middleware added it).
 
-Another way is to not log when you catch, but use an `IActionFilter` to log. [ProblemDetailsExceptionFilter](src/ProblemDetailsExceptionFilter.cs) does this. `Program.cs` has a switch to turn it on, but since some exceptions are logged then thrown, this will cause some duplicate logs -- in this sample. It does have the advantage that any thrown exception gets the scopes, as opposed to ones you may wrap with a logger extension method.
+Another way is to not log when you catch but use an `IActionFilter` to log. [ProblemDetailsExceptionFilter](src/ProblemDetailsExceptionFilter.cs) does this. `Program.cs` has a switch to turn it on, but since some exceptions are logged and then thrown, this will cause some duplicate logs -- in this sample. It does have the advantage that any thrown exception gets the scopes, as opposed to ones you may wrap with a logger extension method.
 
 ![log_when](./doc/log_when.png)
+
+## Using LoggerMessage for High-Performance Logging
+
+[LoggerMessage.Define()](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessage.define), has been around for a long time to help make logging messages more efficient. With .NET 6, there is a new [LoggerMessageAttribute](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessageattribute) you can apply to a method in your class to make that even easier.
+
+In the [links](#links) are some articles on this, but in the sample code there is a [LoggerController.LogMessageCount](src/Controllers/LoggerController.cs) method that calls the usual `_logger.Log` then this equivalent method
+
+```csharp
+[LoggerMessage(0, LogLevel.Information, "This is to say: {Message}")]
+partial void LogMessage(string message);
+```
+
+The endpoint logs to the NullLogger as many times as you pass in. For 1 million logs you can see a significant performance improvement. Granted, the amount of time a method spends in logging is probably a small percentage, but this simple method does help. In addition, you get compile-time validation of the format string, and the generated code checks to see if the log level is enabled or not, which can save even more time.
+
+```text
+> .\l.ps1 1000000
+
+logMs loggerMs
+----- --------
+  138        7
+```
+
+When actually logging (not using the NullLogger) the time is less dramatic but consistently faster.
+
+```text
+> .\l.ps1 250
+
+logMs loggerMs
+----- --------
+  437      351
+```
 
 ## Returning ProblemDetails from a Controller
 
 The .NET [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) class conforms to the [RFC7807](https://tools.ietf.org/html/rfc7807) standard for returning errors from an API. ASP.NET Core also has a [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem) method to return a `ProblemDetails` object from a controller.
 
-If you throw an exception that includes `ProblemDetails` you can add addition details via the `Extensions` (`Dict<string,object?>`) property to help the client to get clearer error data, as opposed to just a string. In the sample code I throw a `ProblemDetailsException` and add an `a` detail property to it.
+If you throw an exception that includes `ProblemDetails` you can add additional details via the `Extensions` (`Dict<string,object?>`) property to help the client to get clearer error data, as opposed to just a string. In the sample code, I throw a `ProblemDetailsException` and add an `a` detail property to it.
 
-There are various ways you can handle errors and return `ProblemDetails` from an API. The sample code's [Program.cs](src/Program.cs) has a variable as the top that can be switch to turn on any of the four methods described below.
+There are various ways you can handle errors and return `ProblemDetails` from an API. The sample code's [Program.cs](src/Program.cs) has a variable as the top that can be switched to turn on any of the four methods described below.
 
 ### Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)
 
 One of the easiest methods is to use the library from Kristian Hellang's [ProblemDetails](https://www.nuget.org/packages/Hellang.Middleware.ProblemDetails) nuget package. Andrew Lock's [blog post](https://andrewlock.net/handling-web-api-exceptions-with-problemdetails-middleware/) about it has pretty good directions (better than the README). This package also includes a `ProblemDetailsException` class that can be used to throw `ProblemDetails`.
 
-The middleware catches errors, and converts them to a `ProblemDetails` object. It is a bit opinionated about the format of the data, which differs in development vs production modes. If you throw a `ProblemDetailsException`, it will be returned as is.
+The middleware catches errors and converts them to a `ProblemDetails` object. It is a bit opinionated about the format of the data, which differs in development vs production modes. If you throw a `ProblemDetailsException`, it will be returned as-is.
 
 `ProblemDetailsException` thrown with 400, get 400
 
@@ -214,7 +250,7 @@ a       : 1232
 traceId : 00-e55573dbe4e776df95e120dcbc1638d4-50e136440bb69152-00
 ```
 
-`NotImplementedException` thrown. In this case the `ProblemDetails` object is created by the middleware.
+`NotImplementedException` thrown. In this case, the `ProblemDetails` object is created by the middleware.
 
 ```json
 type             : https://httpstatuses.io/500
@@ -300,16 +336,19 @@ Click [here](https://github.com/features/codespaces/signup?utm_source=visualstud
 
 ### Links
 
-- My blog [here](https://seekatar.github.io/) using GitHub and Jekyll.
+- My blog [here](https://seekatar.github.io/) uses GitHub and Jekyll.
 - Rico Suter [blog on logging best practices](https://blog.rsuter.com/logging-with-ilogger-recommendations-and-best-practices/)
 - Ben Foster on [blog Serilog best practices](https://benfoster.io/blog/serilog-best-practices)
+- Travis Illig's [deep dive on configuration](https://www.paraesthesia.com/archive/2018/06/20/microsoft-extensions-configuration-deep-dive/)
 - [Nicholas Blumhardt's blog](https://nblumhardt.com/) has many entries about Logging and Serilog
   - [Do's and Don't For Serilog](https://esg.dev/posts/serilog-dos-and-donts/) explains @t, @m, @x in JSON
 - Andrew Lock
   - [Blog about using BeginScope and the trick to use 'catch...when'](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/)
   - [Using .NET6 source generator for logging](https://andrewlock.net/exploring-dotnet-6-part-8-improving-logging-performance-with-source-generators/)
+  - [Improving logging performance with source generators](https://andrewlock.net/exploring-dotnet-6-part-8-improving-logging-performance-with-source-generators/)
   - [Error Handling with custom middleware](https://andrewlock.net/creating-a-custom-error-handler-middleware-function/)
   - [Handling Web API Exceptions with ProblemDetails middleware](https://andrewlock.net/handling-web-api-exceptions-with-problemdetails-middleware/) talks about using Hellang's NuGet package for ProblemDetails
+  - [Validating Configuration](https://andrewlock.net/adding-validation-to-strongly-typed-configuration-objects-in-asp-net-core)
   - [Custom Logging](https://andrewlock.net/defining-custom-logging-messages-with-loggermessage-define-in-asp-net-core/)
   - [Using named configuration sections](https://andrewlock.net/using-multiple-instances-of-strongly-typed-settings-with-named-options-in-net-core-2-x/). This repo doesn't demonstrate this, but this blog shows how you can create one POCO, and register multiple named instances of it in the configuration.
   - [Using scopes](https://andrewlock.net/how-to-include-scopes-when-logging-exceptions-in-asp-net-core/)
@@ -318,3 +357,7 @@ Click [here](https://github.com/features/codespaces/signup?utm_source=visualstud
   - [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem)
   - [ExceptionHandlerExtensions.UseExceptionHandler](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.builder.exceptionhandlerextensions.useexceptionhandler)
   - [High-performance logging with LoggerMessage in ASP.NET Core](https://docs.microsoft.com/en-us/aspnet/core/fundamentals/logging/loggermessage)
+  - [LoggerMessageAttribute Class](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessageattribute)
+
+
+
