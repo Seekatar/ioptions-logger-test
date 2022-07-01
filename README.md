@@ -9,13 +9,14 @@
 - [Options Pattern](#options-pattern)
   - [Options Validation Using Attributes](#options-validation-using-attributes)
 - [ILogger](#ilogger)
+  - [Scoped Logging](#scoped-logging)
+  - [Scoped Logging And Exceptions](#scoped-logging-and-exceptions)
+  - [Using LoggerMessage for High-Performance Logging](#using-loggermessage-for-high-performance-logging)
 - [Test App's Endpoints](#test-apps-endpoints)
 - [Running Seq Locally To View Semantic Logs](#running-seq-locally-to-view-semantic-logs)
 - [Exercising the Endpoints From PowerShell](#exercising-the-endpoints-from-powershell)
 - [Console Apps](#console-apps)
 - [Generating Code From the OAS file](#generating-code-from-the-oas-file)
-- [Scoped Logging](#scoped-logging)
-- [Using LoggerMessage for High-Performance Logging](#using-loggermessage-for-high-performance-logging)
 - [Returning ProblemDetails from a Controller](#returning-problemdetails-from-a-controller)
   - [Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)](#using-hellangs-middleware-exceptionhandlerenumusehellang)
   - [Error Pages (ExceptionHandlerEnum.UsePages)](#error-pages-exceptionhandlerenumusepages)
@@ -120,60 +121,21 @@ In this program, dev logging is to the console, in human-readable format, wherea
 
 There are many sinks available, even one for Sentry (commented out in this sample) so you can configure all Error-level messages to automatically be sent there.
 
-## Test App's Endpoints
-
-| Name                   | Description                                               |
-| ---------------------- | --------------------------------------------------------- |
-| /api/config            | Get Configuration from loose values                       |
-| /api/config/section    | Get Configuration from one section                        |
-| /api/options           | Get configuration via IOptions (no refresh)               |
-| /api/options/monitored | Get configuration via IOptionsMonitor                     |
-| /api/options/snapshot  | Get configuration via IOptionsSnapshot                    |
-| /api/options/throw     | Sample to throw an error to demonstration logging scope   |
-| /api/logger            | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL |
-
-## Running Seq Locally To View Semantic Logs
-
-This repo logs to [Seq](https://datalust.co/seq) by default. Seq is a logging aggregator that you can run locally to see friendly versions of semantic logs.
-
-```powershell
-docker run -d --restart unless-stopped --name seq -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
-```
-
-Then hit http://localhost:5341/#/events to see the logs.
-
-## Exercising the Endpoints From PowerShell
-
-There are some helper scripts in the root
-
-- ./c.ps1 # IConfiguration config
-- ./o.ps1 # IOptions
-- ./a.ps1 # all config
-- ./l.ps1 # logging
-
-## Console Apps
-
-All of this can also be used in Console apps, but requires a bit more code since ASP.NET does so much for you. See other samples for its use.
-
-## Generating Code From the OAS file
-
-I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://github.com/Seekatar/swagger-codegen) is the one I created and use to generate code from the OAS file.
-
-```powershell
-../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
-```
-
-## Scoped Logging
+### Scoped Logging
 
 Often when logging, you want all logged messages to have a `CorrelationId` or some other piece of data for the life of the request. I've done this before with a bunch of `ILogger` extension methods that took an additional parameter. A better way is to use `ILogger.BeginScope`. This method takes a dictionary and adds all the values to each log message. If you are using Serilog and semantic logging such as for ElasticSearch or Seq, all the values appear in the log for filtering and searching.
 
-If your correlation id is in the headers, you can add middleware to create a scope for the request. Since `BeginScope` returns an `IDisposable`, you have to dispose of it properly. The [CorrelationMiddleware.cs](src/Logging/CorrelationMiddleware.cs) sample code shows doing this.
+There are various ways to create scopes, such as the following:
 
-If your correlation values are passed in on the path, you can still use middleware, but the parsing of the url may be complex. Another way to get those values is to use an `IActionFilter` to get the already parsed values and create a scope. The [LoggingContextFilter.cs](src/LoggingContextFilter.cs) sample shows doing this.
+- Call `BeginScope` at any time to manually create a scope.
+- Create a scope from data from headers by using middleware to create a scope for the request. Since `BeginScope` returns an `IDisposable`, you have to dispose of it properly. The [CorrelationMiddleware.cs](src/Logging/CorrelationMiddleware.cs) sample code shows doing this.
+- Create a scope from values passed in on the path using middleware, but the parsing of the url may be complex. A better way to get those values is to use an `IActionFilter` to get the already parsed values and create a scope. The [LoggingContextFilter.cs](src/LoggingContextFilter.cs) sample shows doing this.
 
-You can also create a scope in the controller manually. Here's a log using that method that has the `clientId` and `marketEntityId` from the path (filter adds those), and the `CorrelationId` from the headers (middleware added it).
+Here's a log using that method that has the `clientId` and `marketEntityId` from the path (filter adds those), and the `CorrelationId` from the headers (middleware added it).
 
 ![log_with_scopes](doc/log_scopes.png)
+
+### Scoped Logging And Exceptions
 
 There is a catch to using scopes when an exception is thrown. In the catch processing and thereafter, all your scopes are disposed, so the extra details are lost. There are a couple of ways to handle this. One is to use `catch () when` and call a function to log in the function called in `when` since the scopes are still alive then. The [LoggerExtensions](src/Logging/LoggerExtensions.cs) has methods that various flavors of that technique.
 
@@ -190,13 +152,13 @@ try {
 
 Here's a log using that method that has the `clientId` and `marketEntityId` from the path (filter adds those), and the `CorrelationId` from the headers (middleware added it).
 
-Another way is to not log when you catch but use an `IActionFilter` to log. [ProblemDetailsExceptionFilter](src/ProblemDetailsExceptionFilter.cs) does this. `Program.cs` has a switch to turn it on, but since some exceptions are logged and then thrown, this will cause some duplicate logs -- in this sample. It does have the advantage that any thrown exception gets the scopes, as opposed to ones you may wrap with a logger extension method.
-
 ![log_when](./doc/log_when.png)
 
-## Using LoggerMessage for High-Performance Logging
+Another way is to not log when you catch but use an `IActionFilter` to log. [ProblemDetailsExceptionFilter](src/ProblemDetailsExceptionFilter.cs) does this. `Program.cs` has a switch to turn it on, but since some exceptions are logged and then thrown, this will cause some duplicate logs -- in this sample. It does have the advantage that any thrown exception gets the scopes, as opposed to ones you may wrap with a logger extension method.
 
-[LoggerMessage.Define()](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessage.define), has been around for a long time to help make logging messages more efficient. With .NET 6, there is a new [LoggerMessageAttribute](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessageattribute) you can apply to a method in your class to make that even easier.
+### Using LoggerMessage for High-Performance Logging
+
+[LoggerMessage.Define()](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessage.define), has been around for a while and makes logging messages more efficient. With .NET 6, there is a new [LoggerMessageAttribute](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggermessageattribute) you can apply to a method in your class to make that even easier.
 
 In the [links](#links) are some articles on this, but in the sample code there is a [LoggerController.LogMessageCount](src/Controllers/LoggerController.cs) method that calls the usual `_logger.Log` then this equivalent method
 
@@ -225,11 +187,60 @@ logMs loggerMs
   437      351
 ```
 
+## Test App's Endpoints
+
+| Name                       | Description                                                 |
+| -------------------------- | ----------------------------------------------------------- |
+| /api/config                | Get Configuration from loose values                         |
+| /api/config/section        | Get Configuration from one section                          |
+| /api/logger                | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL   |
+| /api/logger/{logCount}     | Log to null logger to test LoggerMessage performance        |
+| /api/options               | Get configuration via IOptions (no refresh)                 |
+| /api/options/monitored     | Get configuration via IOptionsMonitor                       |
+| /api/options/snapshot      | Get configuration via IOptionsSnapshot                      |
+| /api/options/throw         | Sample to throw an error to demonstration logging scope     |
+| /api/throw/details         | Throw `ProblemDetailsException`                             |
+| /api/throw/details-log     | Log and throw `ProblemDetailsException`                     |
+| /api/throw/details-scope   | Throw `ProblemDetailsException` using `catch` `when` to log |
+| /api/throw/not-implemented | Throw `NotImplementedException`                             |
+
+## Running Seq Locally To View Semantic Logs
+
+This repo logs to [Seq](https://datalust.co/seq) by default. Seq is a logging aggregator that you can run locally to see friendly versions of semantic logs.
+
+```powershell
+docker run -d --restart unless-stopped --name seq -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
+```
+
+Then hit http://localhost:5341/#/events to see the logs.
+
+## Exercising the Endpoints From PowerShell
+
+There are some helper scripts in the root
+
+- ./c.ps1 # IConfiguration config
+- ./o.ps1 # IOptions
+- ./a.ps1 # all config
+- ./l.ps1 # logging
+- ./t.ps1 # throwing exceptions
+
+## Console Apps
+
+All of this can also be used in Console apps, but requires a bit more code since ASP.NET does so much for you. See other samples for its use.
+
+## Generating Code From the OAS file
+
+I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://github.com/Seekatar/swagger-codegen) is the one I created and use to generate code from the OAS file.
+
+```powershell
+../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
+```
+
 ## Returning ProblemDetails from a Controller
 
 The .NET [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) class conforms to the [RFC7807](https://tools.ietf.org/html/rfc7807) standard for returning errors from an API. ASP.NET Core also has a [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem) method to return a `ProblemDetails` object from a controller.
 
-If you throw an exception that includes `ProblemDetails` you can add additional details via the `Extensions` (`Dict<string,object?>`) property to help the client to get clearer error data, as opposed to just a string. In the sample code, I throw a `ProblemDetailsException` and add an `a` detail property to it.
+If you throw an exception that includes `ProblemDetails` you can add additional details via the `Extensions` (`Dict<string,object?>`) property to help the client to get more structured error data, as opposed to just a string. In the sample code, I throw a `ProblemDetailsException` and add an `a` detail property to it.
 
 There are various ways you can handle errors and return `ProblemDetails` from an API. The sample code's [Program.cs](src/Program.cs) has a variable as the top that can be switched to turn on any of the four methods described below.
 

@@ -65,7 +65,7 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Timings), description: "Ok")]
         public virtual ActionResult<Timings> LogMessageCount([FromBody] Message message, [FromRoute][Required] int logCount)
         {
-            _logger = NullLogger<LoggerApiController>.Instance;
+            _logger = NullLogger<LoggerController>.Instance;
 
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < logCount; i++)
