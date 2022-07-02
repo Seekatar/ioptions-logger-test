@@ -1,6 +1,6 @@
-﻿using IOptionTest;
+﻿using IOptionTest.Models;
 
-namespace OptionLoggerTest;
+namespace IOptionTest.Options;
 
 public class SnapshotOptions : ConfigurationBase
 {

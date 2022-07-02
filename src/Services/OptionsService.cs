@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Options;
-using OptionLoggerTest;
-using OptionsLoggerTest.Interfaces;
+﻿using IOptionTest.Interfaces;
+using IOptionTest.Options;
+using Microsoft.Extensions.Options;
 
-namespace OptionsLoggerTest.Services
+namespace IOptionTest.Services
 {
     public class OptionsService : IOptionsService
     {
@@ -10,7 +10,7 @@ namespace OptionsLoggerTest.Services
         private readonly IOptionsMonitor<MonitoredOptions> _monitored;
         private readonly IOptions<OneTimeOptions> _onetime;
 
-        public OptionsService( IOptionsMonitor<MonitoredOptions> monitored,
+        public OptionsService(IOptionsMonitor<MonitoredOptions> monitored,
                                IOptions<OneTimeOptions> onetime,
                                ILogger<OptionsService> logger)
         {
@@ -23,6 +23,7 @@ namespace OptionsLoggerTest.Services
         {
             try
             {
+                _logger.LogInformation("Monitored output {value}", _monitored.CurrentValue.Name);
                 return Task.FromResult(_monitored.CurrentValue);
             }
             catch (OptionsValidationException e)
@@ -34,7 +35,16 @@ namespace OptionsLoggerTest.Services
 
         public Task<OneTimeOptions> GetOneTimeOptions()
         {
-            return Task.FromResult(_onetime.Value);
+            try
+            {
+                _logger.LogInformation("Onetime output {value}", _onetime.Value.Name);
+                return Task.FromResult(_onetime.Value);
+            }
+            catch (OptionsValidationException e)
+            {
+                _logger.LogError(e, "Ow!");
+            }
+            return Task.FromResult(new OneTimeOptions());
         }
     }
 }

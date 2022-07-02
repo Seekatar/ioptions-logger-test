@@ -1,7 +1,7 @@
-﻿using IOptionTest;
-using OptionsLoggerTest.Interfaces;
+﻿using IOptionTest.Interfaces;
+using IOptionTest.Models;
 
-namespace OptionsLoggerTest.Services
+namespace IOptionTest.Services
 {
     public class ConfigurationService : IConfigurationService
     {

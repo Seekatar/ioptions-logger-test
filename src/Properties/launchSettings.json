@@ -22,12 +22,10 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "swagger",
-      // "applicationUrl": "https://localhost:7231;http://localhost:5138",
-      "applicationUrl": "http://localhost:5138",
+      "applicationUrl": "http://0.0.0.0:5138",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
 
-        // highest priority so will override everything else
         "FromEnvironment": "EnvironmentSettings1",
 
         "Configuration:FromEnvironment": "EnvironmentSettings2",
@@ -36,7 +34,10 @@
 
         "Snapshot:FromEnvironment": "EnvironmentSettings4",
 
-        "OneTime__FromEnvironment": "EnvironmentSettings5"
+        "OneTime__FromEnvironment": "EnvironmentSettings5",
+
+        "OverriddenInCode": "EnvironmentSettings6"
+
       }
     }
   }

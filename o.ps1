@@ -1,2 +1,16 @@
+[CmdletBinding()]
+param (
+    [switch] $Correlation
+)
+$headers = @{}
+if ($Correlation) {
+    $headers = @{
+        "Content-Type" = "application/json"
+        "X-Correlation-Id" = [Guid]::NewGuid().ToString()
+        "Accept" = "application/json"
+    }
+}
 $uri = "http://localhost:5138/api/"
-(irm "${uri}options/monitored" && irm "${uri}options/snapshot" && irm "${uri}options") | ft
+(Invoke-RestMethod "${uri}options/monitored" -Headers $headers &&
+ Invoke-RestMethod "${uri}options/snapshot"  -Headers $headers &&
+ Invoke-RestMethod "${uri}options"  -Headers $headers ) | Format-Table

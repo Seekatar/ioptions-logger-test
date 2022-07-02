@@ -1,6 +1,6 @@
-﻿using OptionLoggerTest;
+﻿using IOptionTest.Options;
 
-namespace OptionsLoggerTest.Interfaces
+namespace IOptionTest.Interfaces
 {
     public interface IOptionsService
     {

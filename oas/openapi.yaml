@@ -3,7 +3,7 @@ info:
   title: IConfiguration and IOption test
   description: Test API to show using IOptions and IConfiguration
   contact:
-    email: myemail@aisreview.com
+    email: myemail@bogus.com
   license:
     name: Apache 2.0
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
@@ -112,6 +112,35 @@ paths:
           description: Ok
         "400":
           description: bad input parameter
+  /api/logger/{logCount}:
+    post:
+      tags:
+        - Logger
+      summary: Log messages with LoggerMessage and LogInformation
+      operationId: logMessageCount
+      parameters:
+        - name: logCount
+          required: true
+          in: path
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        description: Message to log
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/message"
+        required: true
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/timings"
+        "400":
+          description: bad input parameter
 components:
   schemas:
     configurationBase:
@@ -147,3 +176,18 @@ components:
             - info
             - warn
             - error
+    timings:
+      description: Log timings
+      type: object
+      required:
+        - logMs
+        - loggerMs
+      properties:
+        logMs:
+          description: Ms to call logger.Information
+          type: integer
+          format: int64
+        loggerMs:
+          description: Ms to call logger message fn
+          type: integer
+          format: int64
