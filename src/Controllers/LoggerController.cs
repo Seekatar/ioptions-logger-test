@@ -26,8 +26,8 @@ namespace IOptionTest.Controllers
         private ILogger<LoggerController> _logger;
         static string EyeCatcher = "OOOOOOOOOOOOOOOOOOO";
 
-        [LoggerMessage(0, LogLevel.Information, "This is to say: {Message}")]
-        partial void LogMessage(string message);
+        [LoggerMessage(EventId = 0, Level = LogLevel.Information, Message = "LoggerMessage says {message} for {Id}")]
+        partial void LogSomething(string message, int id);
 
         public LoggerController(ILogger<LoggerController> logger)
         {
@@ -63,22 +63,25 @@ namespace IOptionTest.Controllers
         [ValidateModelState]
         [SwaggerOperation("LogMessageCount")]
         [SwaggerResponse(statusCode: 200, type: typeof(Timings), description: "Ok")]
-        public virtual ActionResult<Timings> LogMessageCount([FromBody] Message message, [FromRoute][Required] int logCount)
+        public virtual ActionResult<Timings> LogMessageCount([FromBody] Message message, [FromRoute][Required] int logCount,
+        [FromQuery] bool useNullLogger = true)
         {
-            _logger = NullLogger<LoggerController>.Instance;
+            if (useNullLogger)
+            {
+                _logger = NullLogger<LoggerController>.Instance;
+            }
 
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < logCount; i++)
-                _logger.Log(message.Level, "This is to say: {Message}", message._Message);
+                _logger.LogInformation("_logger.Log says {Message} for {i}", message._Message, i);
             sw.Stop();
 
-            var timing = new Timings { LogMs = sw.ElapsedMilliseconds };
+            var timing = new Timings { LoggerCallMs = sw.ElapsedMilliseconds };
             sw.Restart();
             for (int i = 0; i < logCount; i++)
-                LogMessage(message._Message);
+                LogSomething(message._Message, i);
             sw.Stop();
-            timing.LoggerMs = sw.ElapsedMilliseconds;
-
+            timing.LoggerMessageMs = sw.ElapsedMilliseconds;
             return Ok(timing);
         }
     }

@@ -172,9 +172,9 @@ The endpoint logs to the NullLogger as many times as you pass in. For 1 million 
 ```text
 > .\l.ps1 1000000
 
-logMs loggerMs
------ --------
-  138        7
+loggerCallMs loggerMessageMs
+------------ ---------------
+         138               7
 ```
 
 When actually logging (not using the NullLogger) the time is less dramatic but consistently faster.
@@ -182,27 +182,27 @@ When actually logging (not using the NullLogger) the time is less dramatic but c
 ```text
 > .\l.ps1 250
 
-logMs loggerMs
------ --------
-  437      351
+loggerCallMs loggerMessageMs
+------------ ---------------
+         437             351
 ```
 
 ## Test App's Endpoints
 
-| Name                       | Description                                                 |
-| -------------------------- | ----------------------------------------------------------- |
-| /api/config                | Get Configuration from loose values                         |
-| /api/config/section        | Get Configuration from one section                          |
-| /api/logger                | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL   |
-| /api/logger/{logCount}     | Log to null logger to test LoggerMessage performance        |
-| /api/options               | Get configuration via IOptions (no refresh)                 |
-| /api/options/monitored     | Get configuration via IOptionsMonitor                       |
-| /api/options/snapshot      | Get configuration via IOptionsSnapshot                      |
-| /api/options/throw         | Sample to throw an error to demonstration logging scope     |
-| /api/throw/details         | Throw `ProblemDetailsException`                             |
-| /api/throw/details-log     | Log and throw `ProblemDetailsException`                     |
-| /api/throw/details-scope   | Throw `ProblemDetailsException` using `catch` `when` to log |
-| /api/throw/not-implemented | Throw `NotImplementedException`                             |
+| Name                                            | Description                                                 |
+| ----------------------------------------------- | ----------------------------------------------------------- |
+| /api/config                                     | Get Configuration from loose values                         |
+| /api/config/section                             | Get Configuration from one section                          |
+| /api/logger                                     | Log a message in 3 = INFO, 4 = WARN, 5 = ERROR, 6 = FATAL   |
+| /api/logger/{logCount}?useNullLogger=true/false | Log to test LoggerMessage performance                       |
+| /api/options                                    | Get configuration via IOptions (no refresh)                 |
+| /api/options/monitored                          | Get configuration via IOptionsMonitor                       |
+| /api/options/snapshot                           | Get configuration via IOptionsSnapshot                      |
+| /api/options/throw                              | Sample to throw an error to demonstration logging scope     |
+| /api/throw/details                              | Throw `ProblemDetailsException`                             |
+| /api/throw/details-log                          | Log and throw `ProblemDetailsException`                     |
+| /api/throw/details-scope                        | Throw `ProblemDetailsException` using `catch` `when` to log |
+| /api/throw/not-implemented                      | Throw `NotImplementedException`                             |
 
 ## Running Seq Locally To View Semantic Logs
 

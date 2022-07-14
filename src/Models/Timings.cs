@@ -37,7 +37,7 @@ namespace IOptionTest
         [Required]
 
         [DataMember(Name="logMs")]
-        public long LogMs { get; set; }
+        public long LoggerCallMs { get; set; }
 
         /// <summary>
         /// Ms to call logger message fn
@@ -46,7 +46,7 @@ namespace IOptionTest
         [Required]
 
         [DataMember(Name="loggerMs")]
-        public long LoggerMs { get; set; }
+        public long LoggerMessageMs { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object
@@ -56,8 +56,8 @@ namespace IOptionTest
         {
             var sb = new StringBuilder();
             sb.Append("class Timings {\n");
-            sb.Append("  LogMs: ").Append(LogMs).Append("\n");
-            sb.Append("  LoggerMs: ").Append(LoggerMs).Append("\n");
+            sb.Append("  LogMs: ").Append(LoggerCallMs).Append("\n");
+            sb.Append("  LoggerMs: ").Append(LoggerMessageMs).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
         }
@@ -95,12 +95,12 @@ namespace IOptionTest
 
             return 
                 (
-                    LogMs == other.LogMs ||
-                   LogMs.Equals(other.LogMs)
+                    LoggerCallMs == other.LoggerCallMs ||
+                   LoggerCallMs.Equals(other.LoggerCallMs)
                 ) && 
                 (
-                    LoggerMs == other.LoggerMs ||
-                   LoggerMs.Equals(other.LoggerMs)
+                    LoggerMessageMs == other.LoggerMessageMs ||
+                   LoggerMessageMs.Equals(other.LoggerMessageMs)
                 );
         }
 
@@ -115,9 +115,9 @@ namespace IOptionTest
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
                     
-                    hashCode = hashCode * 59 + LogMs.GetHashCode();
+                    hashCode = hashCode * 59 + LoggerCallMs.GetHashCode();
                     
-                    hashCode = hashCode * 59 + LoggerMs.GetHashCode();
+                    hashCode = hashCode * 59 + LoggerMessageMs.GetHashCode();
                 return hashCode;
             }
         }
