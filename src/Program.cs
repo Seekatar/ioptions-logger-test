@@ -30,7 +30,9 @@ if (exceptionHandler == ExceptionHandlerEnum.UseHellang)
             };
         });
     else
-        builder.Services.AddProblemDetails();
+    {
+        Hellang.Middleware.ProblemDetails.ProblemDetailsExtensions.AddProblemDetails(builder.Services);
+    }
 }
 
 builder.Services.AddControllers(options =>

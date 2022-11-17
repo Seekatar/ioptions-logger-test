@@ -13,13 +13,15 @@ namespace IOptionTest.Services
         }
         public Task<Configuration> GetConfiguration()
         {
+            if (_configuration is null) throw new Exception();
+
             return Task.FromResult(
                 new Configuration
                 {
-                    FromAppSettings = _configuration["FromAppSettings"],
-                    FromDevelopmentSettings = _configuration["FromDevelopmentSettings"],
-                    FromEnvironment = _configuration["FromEnvironment"],
-                    FromSharedDevelopmentSettings = _configuration["FromSharedDevelopmentSettings"]
+                    FromAppSettings = _configuration["FromAppSettings"] ?? "",
+                    FromDevelopmentSettings = _configuration["FromDevelopmentSettings"] ?? "",
+                    FromEnvironment = _configuration["FromEnvironment"] ?? "",
+                    FromSharedDevelopmentSettings = _configuration["FromSharedDevelopmentSettings"] ?? ""
                 }
             );
         }
