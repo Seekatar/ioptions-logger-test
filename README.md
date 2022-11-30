@@ -127,7 +127,7 @@ Often when logging, you want all logged messages to have a `CorrelationId` or so
 
 There are various ways to create scopes, such as the following:
 
-- Call `BeginScope` at any time to manually create a scope.
+- Call `BeginScope` at any time to manually create a scope. That is used in [LoggerExtensions.cs](src/Logging/LoggerExtensions.cs)
 - Create a scope from data from headers by using middleware to create a scope for the request. Since `BeginScope` returns an `IDisposable`, you have to dispose of it properly. The [CorrelationMiddleware.cs](src/Logging/CorrelationMiddleware.cs) sample code shows doing this.
 - Create a scope from values passed in on the path using middleware, but the parsing of the url may be complex. A better way to get those values is to use an `IActionFilter` to get the already parsed values and create a scope. The [LoggingContextFilter.cs](src/LoggingContextFilter.cs) sample shows doing this.
 
@@ -137,7 +137,7 @@ Here's a log using that method that has the `clientId` and `marketEntityId` from
 
 ### Scoped Logging And Exceptions
 
-There is a catch to using scopes when an exception is thrown. In the catch processing and thereafter, all your scopes are disposed, so the extra details are lost. There are a couple of ways to handle this. One is to use `catch () when` and call a function to log in the function called in `when` since the scopes are still alive then. The [LoggerExtensions](src/Logging/LoggerExtensions.cs) has methods that various flavors of that technique.
+There is a catch to using scopes when an exception is thrown. In the catch processing and thereafter, all your scopes are disposed, so the extra details are lost. There are a couple of ways to handle this. One is to use `catch () when` and call a function to log in the function called in `when` since the scopes are still alive then. The [LoggerExtensions](src/Logging/LoggerExtensions.cs) has methods with various flavors of that technique.
 
 This is the pattern. `LogCaughtException` logs the exception with the `logger` and the scopes will be logged.
 
