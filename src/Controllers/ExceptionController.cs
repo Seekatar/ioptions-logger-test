@@ -5,10 +5,12 @@ using System.Net;
 using IOptionTest.Logging;
 using IOptionTest.Models;
 using IOptionTest.Attributes;
-using Hellang.Middleware.ProblemDetails;
+using static IOptionTest.Options.ExceptionOptions;
+using System.Net.Http;
 
 namespace IOptionTest.Controllers;
 
+[Produces("application/json")]
 public class ExceptionController : Controller
 {
     private readonly ILogger<ExceptionController> _logger;
@@ -37,14 +39,14 @@ public class ExceptionController : Controller
     {
         var pd = new ProblemDetails()
         {
-            Type = "about:blank", 
+            Type = "about:blank",
             Status = (int)HttpStatusCode.InternalServerError,
             Title = "Throwing Problem Details",
             Detail = "My detail message, look for a and status of 500",
         };
         pd.Extensions["a"] = 1232;
 
-        throw new ProblemDetailsException(pd);
+        throw new Hellang.Middleware.ProblemDetails.ProblemDetailsException(pd);
     }
 
     [HttpGet]
@@ -67,7 +69,7 @@ public class ExceptionController : Controller
             };
             pd.Extensions["a"] = 1232;
 
-            throw new ProblemDetailsException(pd);
+            throw new Hellang.Middleware.ProblemDetails.ProblemDetailsException(pd);
         });
     }
 
@@ -76,7 +78,7 @@ public class ExceptionController : Controller
     [ValidateModelState]
     [SwaggerOperation("ThrowLogProblemDetails")]
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-    public virtual ActionResult ThrowLogProblemDetails(Guid clientId, int marketEntityId)
+    public virtual async Task ThrowLogProblemDetails(Guid clientId, int marketEntityId)
     {
         var pd = new ProblemDetails()
         {

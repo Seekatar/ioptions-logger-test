@@ -18,6 +18,8 @@
 - [Console Apps](#console-apps)
 - [Generating Code From the OAS file](#generating-code-from-the-oas-file)
 - [Returning ProblemDetails from a Controller](#returning-problemdetails-from-a-controller)
+  - [.NET 7 Method](#net-7-method)
+  - [.NET 6 Method](#net-6-method)
   - [Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)](#using-hellangs-middleware-exceptionhandlerenumusehellang)
   - [Error Pages (ExceptionHandlerEnum.UsePages)](#error-pages-exceptionhandlerenumusepages)
   - [Function to Handle Error (ExceptionHandlerEnum.UseExceptionHandler)](#function-to-handle-error-exceptionhandlerenumuseexceptionhandler)
@@ -237,6 +239,36 @@ I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://git
 ```
 
 ## Returning ProblemDetails from a Controller
+
+### .NET 7 Method
+
+.NET 7 has a [ProblemDetailsService](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iproblemdetailsservice) as described in this [MS blog post](https://devblogs.microsoft.com/dotnet/asp-net-core-updates-in-dotnet-7-preview-7/#new-problem-details-service). In addition, [this blog](https://www.strathweb.com/2022/08/problem-details-responses-everywhere-with-asp-net-core-and-net-7/) also has a good overview. I added `DotNet7` enum value to be able to turn it on in `program.cs`
+
+Simply turning it on is great if your in developer mode and add `UseDeveloperExceptionPage()`, but turning that off for a release build sends JSON that just looks like this regardless of the exception you throw.
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+  "title": "An error occurred while processing your request.",
+  "status": 500
+}
+```
+
+> Why don't they have a `ProblemDetailsException` that you can throw? Hellang does. And I've seen others wrap [ProblemDetails](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) with an `Exception`.
+
+To allow code to throw a nice [ProblemDetails](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) (Which has been around since .NET Core 2.1) I've added custom middleware to catch Hellang's implementation of `ProblemDetailsException` and pull out its [ProblemDetails](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) and pass it to the new [ProblemDetailsService.WriteAsync](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iproblemdetailsservice.writeasync) method to write the response include all the details of the exception:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Throwing Problem Details",
+  "status": 500,
+  "detail": "My detail message, look for a and status of 500",
+  "a": 1232
+}
+```
+
+### .NET 6 Method
 
 The .NET [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) class conforms to the [RFC7807](https://tools.ietf.org/html/rfc7807) standard for returning errors from an API. ASP.NET Core also has a [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem) method to return a `ProblemDetails` object from a controller.
 

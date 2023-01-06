@@ -1,4 +1,3 @@
-using Hellang.Middleware.ProblemDetails;
 using IOptionTest;
 using IOptionTest.Interfaces;
 using IOptionTest.Options;
@@ -8,8 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Seekatar.Tools;
 using Serilog;
 using System.Net;
+using static IOptionTest.Options.ExceptionOptions;
 
-var exceptionHandler = ExceptionHandlerEnum.UseHellang;
+ExceptionHandler = ExceptionHandlerEnum.DotNet7;
 bool useExceptionLoggingFilter = false; // this will cause some redundant logging, but you get the idea
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,10 +19,10 @@ builder.Configuration.InsertSharedDevSettings();
 builder.Host.UseSerilog((ctx, loggerConfig) => loggerConfig.ReadFrom.Configuration(builder.Configuration));
 #endregion
 
-if (exceptionHandler == ExceptionHandlerEnum.UseHellang)
+if (ExceptionHandler == ExceptionHandlerEnum.UseHellang)
 {
     if (useExceptionLoggingFilter)
-        builder.Services.AddProblemDetails(opts =>
+        Hellang.Middleware.ProblemDetails.ProblemDetailsExtensions.AddProblemDetails(builder.Services, opts =>
         {
             opts.ShouldLogUnhandledException = (context, exception, details) =>
             {
@@ -33,6 +33,10 @@ if (exceptionHandler == ExceptionHandlerEnum.UseHellang)
     {
         Hellang.Middleware.ProblemDetails.ProblemDetailsExtensions.AddProblemDetails(builder.Services);
     }
+}
+else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7 )
+{
+    builder.Services.AddProblemDetails();
 }
 
 builder.Services.AddControllers(options =>
@@ -69,9 +73,16 @@ builder.Services.AddOptions<SnapshotOptions>()
 var app = builder.Build();
 
 
-if (exceptionHandler == ExceptionHandlerEnum.UseHellang)
+if (ExceptionHandler == ExceptionHandlerEnum.UseHellang)
 {
-    app.UseProblemDetails(); // Add the middleware
+    Hellang.Middleware.ProblemDetails.ProblemDetailsExtensions.UseProblemDetails(app); // Add the middleware
+}
+else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
+{
+    app.UseExceptionHandler();
+    app.UseStatusCodePages();
+    //if (app.Environment.IsDevelopment())
+    //    app.UseDeveloperExceptionPage(); // without this just get a 500
 }
 
 if (app.Environment.IsDevelopment())
@@ -80,7 +91,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (exceptionHandler == ExceptionHandlerEnum.UseExceptionHandler)
+if (ExceptionHandler == ExceptionHandlerEnum.UseExceptionHandler)
 {
     // using this by itself converts to Problem details, but still logs w/o context {application/json; charset=utf-8}
     app.UseExceptionHandler(errorApp =>
@@ -91,7 +102,7 @@ if (exceptionHandler == ExceptionHandlerEnum.UseExceptionHandler)
             var ex = exceptionDetails?.Error;
 
             ProblemDetails pd;
-            if (ex is ProblemDetailsException pde)
+            if (ex is Hellang.Middleware.ProblemDetails.ProblemDetailsException pde)
             {
                 pd = pde.Details;
             }
@@ -110,7 +121,7 @@ if (exceptionHandler == ExceptionHandlerEnum.UseExceptionHandler)
 }
 
 // kinda works, but sends it  {application/problem+json; charset=utf-8} encoded and logs w/o context
-if (exceptionHandler == ExceptionHandlerEnum.UsePages)
+if (ExceptionHandler == ExceptionHandlerEnum.UsePages)
 {
     if (app.Environment.IsDevelopment())
     {
@@ -133,18 +144,14 @@ app.MapControllers();
 app.UseMiddleware<CorrelationMiddleware>(); // pull correlation from headers in middleware to add to scope
 
 // this changes it to a ProblemDetails, but doesn't log
-if (exceptionHandler == ExceptionHandlerEnum.UseMyMiddleWare)
+if (ExceptionHandler == ExceptionHandlerEnum.UseMyMiddleWare)
 {
     app.UseMiddleware<MyExceptionMiddleware>();
 }
-
+else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
+{
+    app.UseMiddleware<ProblemDetailsMiddleware>();
+}
 app.Run();
 
 #pragma warning restore CA2254
-enum ExceptionHandlerEnum
-{
-    UseExceptionHandler,
-    UsePages,
-    UseMyMiddleWare,
-    UseHellang
-};

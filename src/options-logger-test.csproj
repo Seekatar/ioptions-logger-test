@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Hellang.Middleware.ProblemDetails" Version="6.4.2" />
-    <PackageReference Include="Seekatar.Tools" Version="0.1.1" />
+    <PackageReference Include="Seekatar.Tools" Version="0.1.4-test" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.3.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="5.1.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
