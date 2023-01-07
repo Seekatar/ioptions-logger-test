@@ -150,7 +150,7 @@ if (ExceptionHandler == ExceptionHandlerEnum.UseMyMiddleWare)
 }
 else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
 {
-    app.UseMiddleware<ProblemDetailsMiddleware>();
+    app.UseMiddleware<Seekatar.ProblemDetails.ProblemDetailsMiddleware>();
 }
 app.Run();
 

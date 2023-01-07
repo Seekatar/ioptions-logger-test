@@ -7,6 +7,9 @@ using IOptionTest.Models;
 using IOptionTest.Attributes;
 using static IOptionTest.Options.ExceptionOptions;
 using System.Net.Http;
+using System.Reflection;
+using static System.Net.WebRequestMethods;
+using IOptionTest.Options;
 
 namespace IOptionTest.Controllers;
 
@@ -27,7 +30,7 @@ public class ExceptionController : Controller
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
     public virtual ActionResult ThrowNotImplemented(Guid clientId, int marketEntityId)
     {
-        throw new NotImplementedException("My function is not implemented");
+        throw new NotImplementedException("Throwing NotImplementedException");
     }
 
     [HttpGet]
@@ -39,14 +42,19 @@ public class ExceptionController : Controller
     {
         var pd = new ProblemDetails()
         {
-            Type = "about:blank",
+            Type = "https://www.rfc-editor.org/rfc/rfc7231#section-6.6.1",
             Status = (int)HttpStatusCode.InternalServerError,
-            Title = "Throwing Problem Details",
+            Title = "Throwing ProblemDetailsException",
             Detail = "My detail message, look for a and status of 500",
         };
-        pd.Extensions["a"] = 1232;
+        pd.Extensions["extension_value_int"] = 1232;
+        pd.Extensions["extension_value_string"] = "Some value";
+        pd.Extensions["method_name"] = MethodBase.GetCurrentMethod()?.Name ?? "Unknown";
 
-        throw new Hellang.Middleware.ProblemDetails.ProblemDetailsException(pd);
+        if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
+            throw new Seekatar.ProblemDetails.ProblemDetailsException(pd);
+        else
+            throw new Hellang.Middleware.ProblemDetails.ProblemDetailsException(pd);
     }
 
     [HttpGet]
@@ -62,14 +70,19 @@ public class ExceptionController : Controller
 
             var pd = new ProblemDetails()
             {
-                Type = "about:blank",
+                Type = "https://www.rfc-editor.org/rfc/rfc7231#section-6.6.1",
                 Status = (int)HttpStatusCode.InternalServerError,
-                Title = "Throwing 'catch when' Problem Details",
+                Title = "Throwing 'catch when' ProblemDetailsException",
                 Detail = "My detail message, logged in when, then throw, look for a and status of 500",
             };
-            pd.Extensions["a"] = 1232;
+            pd.Extensions["extension_value_int"] = 1232;
+            pd.Extensions["extension_value_string"] = "Some value";
+            pd.Extensions["method_name"] = MethodBase.GetCurrentMethod()?.Name ?? "Unknown";
 
-            throw new Hellang.Middleware.ProblemDetails.ProblemDetailsException(pd);
+            if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
+                throw new Seekatar.ProblemDetails.ProblemDetailsException(pd);
+            else
+                throw new Hellang.Middleware.ProblemDetails.ProblemDetailsException(pd);
         });
     }
 
@@ -78,17 +91,20 @@ public class ExceptionController : Controller
     [ValidateModelState]
     [SwaggerOperation("ThrowLogProblemDetails")]
     [SwaggerResponse(statusCode: 200, type: typeof(Configuration), description: "Ok")]
-    public virtual async Task ThrowLogProblemDetails(Guid clientId, int marketEntityId)
+    public virtual void ThrowLogProblemDetails(Guid clientId, int marketEntityId)
     {
         var pd = new ProblemDetails()
         {
-            Type = "about:blank",
+            Type = "https://www.rfc-editor.org/rfc/rfc7231#section-6.5.1",
             Status = (int)HttpStatusCode.BadRequest,
-            Title = "Throwing And Logging Problem Details",
+            Title = "_logger.LogProblemDetails",
             Detail = "Logging my detail message, look for a and status of 400",
         };
-        pd.Extensions["a"] = 1232;
+        pd.Extensions["extension_value_int"] = 1232;
+        pd.Extensions["extension_value_string"] = "Some value";
+        pd.Extensions["method_name"] = MethodBase.GetCurrentMethod()?.Name ?? "Unknown";
 
         throw _logger.LogProblemDetails(LogLevel.Warning, pd);
+        
     }
 }
