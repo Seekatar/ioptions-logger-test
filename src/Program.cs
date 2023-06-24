@@ -37,6 +37,16 @@ if (ExceptionHandler == ExceptionHandlerEnum.UseHellang)
 else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7 )
 {
     builder.Services.AddProblemDetails();
+    // setting CustomizeProblemDetails breaks our middleware
+    //builder.Services.AddProblemDetails( opt => {
+    //    opt.CustomizeProblemDetails = (problemDetailsCtx) =>
+    //    {
+    //        Console.WriteLine("Hi");
+    //        problemDetailsCtx.AdditionalMetadata.Append(999);
+    //        problemDetailsCtx.ProblemDetails.Type = "set in customproblemdetails";
+    //    };
+
+    //});
 }
 
 builder.Services.AddControllers(options =>
@@ -79,10 +89,17 @@ if (ExceptionHandler == ExceptionHandlerEnum.UseHellang)
 }
 else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
 {
+    // add default exception handler
     app.UseExceptionHandler();
+
+    // this returns problemDetails if caller sets accept to application/json for responses with status codes between 400 and 599 that do not have a body
     app.UseStatusCodePages();
+
+    // add our middleware to call WriteAsync so we get contents or a ProblemDetailsException instead of 500
+    //app.UseMiddleware<Seekatar.ProblemDetails.ProblemDetailsMiddleware>();
+
     //if (app.Environment.IsDevelopment())
-    //    app.UseDeveloperExceptionPage(); // without this just get a 500
+    //    app.UseDeveloperExceptionPage(); // with this dumps all details, including stack, otherwise this just get a 500
 }
 
 if (app.Environment.IsDevelopment())
@@ -147,10 +164,6 @@ app.UseMiddleware<CorrelationMiddleware>(); // pull correlation from headers in 
 if (ExceptionHandler == ExceptionHandlerEnum.UseMyMiddleWare)
 {
     app.UseMiddleware<MyExceptionMiddleware>();
-}
-else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
-{
-    app.UseMiddleware<Seekatar.ProblemDetails.ProblemDetailsMiddleware>();
 }
 app.Run();
 

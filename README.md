@@ -18,7 +18,7 @@
 - [Console Apps](#console-apps)
 - [Generating Code From the OAS file](#generating-code-from-the-oas-file)
 - [Returning ProblemDetails from a Controller](#returning-problemdetails-from-a-controller)
-  - [.NET 7 Method](#net-7-method)
+  - [.NET 7's ProblemDetailsService](#net-7s-problemdetailsservice)
   - [.NET 6 Method](#net-6-method)
   - [Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)](#using-hellangs-middleware-exceptionhandlerenumusehellang)
   - [Error Pages (ExceptionHandlerEnum.UsePages)](#error-pages-exceptionhandlerenumusepages)
@@ -240,7 +240,7 @@ I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://git
 
 ## Returning ProblemDetails from a Controller
 
-### .NET 7 Method
+### .NET 7's ProblemDetailsService
 
 .NET 7 has a [ProblemDetailsService](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iproblemdetailsservice) as described in this [MS blog post](https://devblogs.microsoft.com/dotnet/asp-net-core-updates-in-dotnet-7-preview-7/#new-problem-details-service). In addition, [this blog](https://www.strathweb.com/2022/08/problem-details-responses-everywhere-with-asp-net-core-and-net-7/) also has a good overview. I added `DotNet7` enum value to be able to turn it on in `program.cs`
 
