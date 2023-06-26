@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Seekatar.Tools;
 using Serilog;
 using System.Net;
+using System.Security.Claims;
 using static IOptionTest.Options.ExceptionOptions;
 
 ExceptionHandler = ExceptionHandlerEnum.DotNet7;
@@ -78,6 +79,20 @@ builder.Services.AddOptions<SnapshotOptions>()
         .Bind(builder.Configuration.GetSection(SnapshotOptions.SectionName))
         .Configure(o => o.OverriddenInCode = "OverriddenInCode")
         .ValidateDataAnnotations();
+#endregion
+
+#region Add Auth Test Services
+builder.Services.AddAuthentication()
+                .AddCustomAuthentication("CustomAuthenticationA", "CustomAuthenticationA")
+                .AddCustomAuthentication("CustomAuthenticationB", "CustomAuthenticationB")
+                .AddCustomAuthentication("CustomAuthenticationC", "CustomAuthenticationC");
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CustomAuthenticationA", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimTypes.Name, "CustomAuthenticationA"));
+    options.AddPolicy("CustomAuthenticationB", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimTypes.Name, "CustomAuthenticationB"));
+    options.AddPolicy("CustomAuthenticationC", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimTypes.Name, "CustomAuthenticationC"));
+});
 #endregion
 
 var app = builder.Build();
