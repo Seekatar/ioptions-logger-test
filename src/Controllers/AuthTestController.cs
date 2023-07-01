@@ -82,7 +82,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/a-or-b")]
         [SwaggerOperation("GetAuthAorB")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Roles = $"{RoleA},{RoleB}", AuthenticationSchemes = $"{SchemeA},{SchemeB}")]
+        [Authorize(Policy = PolicyAorB)]
         public virtual ActionResult<Message> GetAuthAorB()
         { 
             return Ok(new Message() { _Message = "Hello World" });

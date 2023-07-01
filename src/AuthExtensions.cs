@@ -3,10 +3,11 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 
+namespace IOptionTest;
+
 public class MyAuthenticationSchemeOptions : AuthenticationSchemeOptions
 {
     public string Name { get; set; } = "";
-    public bool ShouldFail { get; internal set; }
 }
 
 public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticationSchemeOptions>
@@ -19,24 +20,28 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         // faked out authentication for testing
-        // if there is a Role that matches Options.Name, it is OK, otherwise 401
-        Console.WriteLine($"Hi from HandleAuthenticateAsync with {Options.Name}");
+        // X-Test-User must match the name to pass AUTHN.
+        // X-Test-Role is a comma separated list of roles to add to the claims
+        Logger.LogInformation("Hi from HandleAuthenticateAsync named {handlerName}", Options.Name);
 
-        if (Options.ShouldFail)
-            return Task.FromResult(AuthenticateResult.Fail("ShouldFail was true"));
+        var user = Context.Request.Headers["X-Test-User"];
+        if (!(user.ElementAtOrDefault(0)?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
+            return Task.FromResult(AuthenticateResult.Fail($"'{user.ElementAtOrDefault(0)}' was not 'User{Options.Name}'"));
 
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.Name, Options.Name),
         };
 
-        // set a role claims from a header X-Test-Role
         var role = Context.Request.Headers["X-Test-Role"];
-        foreach (var rstring in role) {
+        foreach (var rstring in role)
+        {
             if (rstring is null) continue;
-            foreach( var r in rstring.Split(",") )
+            foreach (var r in rstring.Split(","))
                 claims.Add(new Claim(ClaimTypes.Role, r));
         }
+        Logger.LogInformation("{handlerName} set claims: {claims}", Options.Name, string.Join(", ", claims.Select(c => c.Type + ":" + c.Value)));
+
         var identity = new ClaimsIdentity(claims, ClaimTypes.Name);
         var principal = new ClaimsPrincipal(identity);
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, ClaimTypes.Name)));
@@ -45,11 +50,11 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
 
 public static class CustomAuthenticationExtensions
 {
-    public static AuthenticationBuilder AddCustomAuthentication(this AuthenticationBuilder builder, string authenticationScheme, string name, bool shouldFail = false)
+    public static AuthenticationBuilder AddCustomAuthentication(this AuthenticationBuilder builder, string authenticationScheme, string name)
     {
-        return builder.AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(authenticationScheme, options => {
+        return builder.AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(authenticationScheme, options =>
+        {
             options.Name = name;
-            options.ShouldFail = shouldFail;
         });
     }
 }

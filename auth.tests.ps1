@@ -2,63 +2,73 @@ BeforeAll {
     $uri = "http://localhost:5138/api/"
 }
 
-Describe "Tests Auth" {
+
+Describe "Tests Auth success" {
     It "Tests Auth A" {
-        $result = Invoke-WebRequest "${uri}auth/a" -Headers @{ "X-Test-Role" = "A" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a" -Headers @{ "X-Test-User" = "UserA"; "X-Test-Role" = "A" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
     It "Tests Auth B with scheme" {
-        $result = Invoke-WebRequest "${uri}auth/b-scheme" -Headers @{ "X-Test-Role" = "B" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/b-scheme" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
     It "Tests Auth A and B" {
-        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-Role" = "A,B" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-User" = "UserA";  "X-Test-Role" = "A,B" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
+        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-User" = "UserB";  "X-Test-Role" = "A,B" } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be 200
+        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-User" = "UserC";  "X-Test-Role" = "A,B" } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be 401
     }
     It "Tests Auth A or B as A" {
-        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-Role" = "A" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-User" = "UserA"; "X-Test-Role" = "A" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
     It "Tests Auth A or B as B" {
-        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-Role" = "B" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
     It "Tests Auth A or B as A and B" {
-        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-Role" = "A,B" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "A,B" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
     It "Tests Auth C" {
-        $result = Invoke-WebRequest "${uri}auth/c" -Headers @{ "X-Test-Role" = "C" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/c" -Headers @{ "X-Test-User" = "UserC"; "X-Test-Role" = "C" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 500
     }
     It "Tests Anon" {
         $result = Invoke-WebRequest "${uri}auth/anon" -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
-}
+} 
 
-Describe "Test permission" {
+Describe "Test auth denied" {
 
     It "Tests Auth A and B with only A" {
-        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-Role" = "A" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-User" = "UserA"; "X-Test-Role" = "A" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 403
     }
 
     It "Tests Auth A and B with only B" {
-        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-Role" = "B" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be 403
+    }
+
+    It "Tests Auth A or B as B with role C" {
+        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "C" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 403
     }
 
     It "Tests Auth A or B as C" {
-        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-Role" = "C" } -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be 403
+        $result = Invoke-WebRequest "${uri}auth/a-or-b" -Headers @{ "X-Test-User" = "UserC"; "X-Test-Role" = "C" } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be 401
     }
 } 
 
-Describe "Tests Auth Policy Errors" {
+Describe "Tests auth policy configuration errors" {
 
     It "Tests Auth B without a scheme" {
-        $result = Invoke-WebRequest "${uri}auth/b" -Headers @{ "X-Test-Role" = "B" } -SkipHttpErrorCheck
+        $result = Invoke-WebRequest "${uri}auth/b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
         # Error since policy doesn't have AuthN scheme
         $result.StatusCode | Should -Be 500
     }
@@ -68,4 +78,4 @@ Describe "Tests Auth Policy Errors" {
         # Error with just [Authorize] since no default AuthN scheme
         $result.StatusCode | Should -Be 500
     }
-}
+} 

@@ -7,9 +7,9 @@ internal static class AuthConstants
     public const string PolicyAorB = "CustomPolicyAorB";
     public const string PolicyC = "CustomPolicyC";   
 
-    public const string SchemeA = "CustomSchemeA";
-    public const string SchemeB = "CustomSchemeB";
-    public const string SchemeC = "CustomSchemeC";
+    public const string SchemeA = "SchemeA";
+    public const string SchemeB = "SchemeB";
+    public const string SchemeC = "SchemeC";
 
     public const string RoleA = "A";
     public const string RoleB = "B";

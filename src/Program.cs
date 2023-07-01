@@ -90,7 +90,7 @@ builder.Services
     .AddAuthentication()
     .AddCustomAuthentication(SchemeA, NameClaimA)
     .AddCustomAuthentication(SchemeB, NameClaimB)
-    .AddCustomAuthentication(SchemeC, NameClaimC, true);
+    .AddCustomAuthentication(SchemeC, NameClaimC);
 
 builder.Services.AddAuthorization(options =>
 {
@@ -98,13 +98,11 @@ builder.Services.AddAuthorization(options =>
         {
             policy.AddAuthenticationSchemes(SchemeA)
                   .RequireAuthenticatedUser()
-                  .RequireClaim(ClaimTypes.Name, NameClaimA)
                   .RequireRole(RoleA);
         });
     options.AddPolicy(PolicyB, policy =>
         {
             policy.RequireAuthenticatedUser()
-                  .RequireClaim(ClaimTypes.Name, NameClaimB)
                   .RequireRole(RoleB);
         });
     options.AddPolicy(PolicyAorB, policy =>
@@ -114,8 +112,7 @@ builder.Services.AddAuthorization(options =>
                   .RequireRole(RoleA, RoleB);
         });
     options.AddPolicy(PolicyC, policy => {
-            policy.RequireAuthenticatedUser()
-                  .RequireClaim(ClaimTypes.Name, NameClaimC);
+            policy.RequireAuthenticatedUser();
         });
 });
 #endregion
