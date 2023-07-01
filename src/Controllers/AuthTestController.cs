@@ -38,7 +38,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/a")]
         [SwaggerOperation("GetAuthA")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Policy = AuthConstants.PolicyA)]
+        [Authorize(PolicyA)]
         public virtual ActionResult<Message> GetAuthA()
         {
             return Ok(new Message() { _Message = "Hello World" });
@@ -53,8 +53,8 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/a-and-b")]
         [SwaggerOperation("GetAuthAB")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Policy = AuthConstants.PolicyA)]
-        [Authorize(Policy = AuthConstants.PolicyB, AuthenticationSchemes = AuthConstants.SchemeB)]
+        [Authorize(PolicyA)]
+        [Authorize(PolicyB, AuthenticationSchemes = SchemeB)]
         public virtual ActionResult<Message> GetAuthAB()
         {
             return Ok(new Message() { _Message = "Hello World" });
@@ -82,7 +82,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/a-or-b")]
         [SwaggerOperation("GetAuthAorB")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Policy = PolicyAorB)]
+        [Authorize(PolicyAorB)]
         public virtual ActionResult<Message> GetAuthAorB()
         { 
             return Ok(new Message() { _Message = "Hello World" });
@@ -97,7 +97,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/b")]
         [SwaggerOperation("GetAuthB")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Policy = PolicyB)]
+        [Authorize(PolicyB)]
         public virtual ActionResult<Message> GetAuthB()
         {
             return Ok(new Message() { _Message = "Hello World" });
@@ -112,7 +112,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/b-scheme")]
         [SwaggerOperation("GetAuthBScheme")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Policy = PolicyB, AuthenticationSchemes = SchemeB)]
+        [Authorize(PolicyB, AuthenticationSchemes = SchemeB)]
         public virtual ActionResult<Message> GetAuthBScheme()
         {
             return Ok(new Message() { _Message = "Hello World" });
@@ -127,7 +127,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/c")]
         [SwaggerOperation("GetAuthC")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(Policy = AuthConstants.PolicyC)]
+        [Authorize(PolicyC)]
         public virtual ActionResult<Message> GetAuthC()
         {
             return Ok(new Message() { _Message = "Hello World" });
