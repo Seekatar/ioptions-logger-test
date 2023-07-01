@@ -15,7 +15,7 @@ internal static class AuthConstants
     public const string RoleB = "B";
     public const string RoleC = "C";
 
-    public const string NameClaimA = "A Claim";
-    public const string NameClaimB = "B Claim";
-    public const string NameClaimC = "C Claim";
+    public const string NameClaimA = "A";
+    public const string NameClaimB = "B";
+    public const string NameClaimC = "C";
 }

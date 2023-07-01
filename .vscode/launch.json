@@ -22,7 +22,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/bin/Debug/net6.0/options-logger-test.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/net7.0/options-logger-test.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src",
             "stopAtEntry": false,

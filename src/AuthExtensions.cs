@@ -18,8 +18,10 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
 
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        // faked out authentication for testing
+        // if there is a Role that matches Options.Name, it is OK, otherwise 401
         Console.WriteLine($"Hi from HandleAuthenticateAsync with {Options.Name}");
-        
+
         if (Options.ShouldFail)
             return Task.FromResult(AuthenticateResult.Fail("ShouldFail was true"));
 
@@ -35,7 +37,6 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
             foreach( var r in rstring.Split(",") )
                 claims.Add(new Claim(ClaimTypes.Role, r));
         }
-
         var identity = new ClaimsIdentity(claims, ClaimTypes.Name);
         var principal = new ClaimsPrincipal(identity);
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, ClaimTypes.Name)));
