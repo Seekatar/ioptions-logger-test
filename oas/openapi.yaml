@@ -19,6 +19,126 @@ tags:
   - name: Logger
     description: Log messages
 paths:
+  /api/auth/a:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthA
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/b:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthB
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/anon:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthAnon
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter  
+  /api/auth:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthNone
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/b-scheme:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthBScheme
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/a-and-b:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthAB
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/a-or-b:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthAorB
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/c:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthC
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
   /api/config:
     get:
       tags:

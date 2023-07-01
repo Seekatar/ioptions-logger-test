@@ -9,6 +9,7 @@ using Serilog;
 using System.Net;
 using System.Security.Claims;
 using static IOptionTest.Options.ExceptionOptions;
+using static IOptionTest.AuthConstants;
 
 ExceptionHandler = ExceptionHandlerEnum.DotNet7;
 bool useExceptionLoggingFilter = false; // this will cause some redundant logging, but you get the idea
@@ -35,7 +36,7 @@ if (ExceptionHandler == ExceptionHandlerEnum.UseHellang)
         Hellang.Middleware.ProblemDetails.ProblemDetailsExtensions.AddProblemDetails(builder.Services);
     }
 }
-else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7 )
+else if (ExceptionHandler == ExceptionHandlerEnum.DotNet7)
 {
     builder.Services.AddProblemDetails();
     // setting CustomizeProblemDetails breaks our middleware
@@ -82,16 +83,40 @@ builder.Services.AddOptions<SnapshotOptions>()
 #endregion
 
 #region Add Auth Test Services
-builder.Services.AddAuthentication()
-                .AddCustomAuthentication("CustomAuthenticationA", "CustomAuthenticationA")
-                .AddCustomAuthentication("CustomAuthenticationB", "CustomAuthenticationB")
-                .AddCustomAuthentication("CustomAuthenticationC", "CustomAuthenticationC");
+builder.Services.AddOptions<MyAuthenticationSchemeOptions>()
+        .Bind(builder.Configuration.GetSection("MyAuthenticationSchemeOptions"));
+
+builder.Services
+    .AddAuthentication()
+    .AddCustomAuthentication(SchemeA, NameClaimA)
+    .AddCustomAuthentication(SchemeB, NameClaimB)
+    .AddCustomAuthentication(SchemeC, NameClaimC, true);
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("CustomAuthenticationA", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimTypes.Name, "CustomAuthenticationA"));
-    options.AddPolicy("CustomAuthenticationB", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimTypes.Name, "CustomAuthenticationB"));
-    options.AddPolicy("CustomAuthenticationC", policy => policy.RequireAuthenticatedUser().RequireClaim(ClaimTypes.Name, "CustomAuthenticationC"));
+    options.AddPolicy(PolicyA, policy =>
+        {
+            policy.AddAuthenticationSchemes(SchemeA)
+                  .RequireAuthenticatedUser()
+                  .RequireClaim(ClaimTypes.Name, NameClaimA)
+                  .RequireRole(RoleA);
+        });
+    options.AddPolicy(PolicyB, policy =>
+        {
+            policy.RequireAuthenticatedUser()
+                  .RequireClaim(ClaimTypes.Name, NameClaimB)
+                  .RequireRole(RoleB);
+        });
+    options.AddPolicy(PolicyAorB, policy =>
+        {
+            policy.RequireAuthenticatedUser()
+                  .AddAuthenticationSchemes(SchemeA, SchemeB)
+                  .RequireRole(RoleA, RoleB);
+        });
+    options.AddPolicy(PolicyC, policy => {
+            policy.RequireAuthenticatedUser()
+                  .RequireClaim(ClaimTypes.Name, NameClaimC);
+        });
 });
 #endregion
 

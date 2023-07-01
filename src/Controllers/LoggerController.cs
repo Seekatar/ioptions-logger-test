@@ -14,6 +14,7 @@ using IOptionTest.Attributes;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IOptionTest.Controllers
 {
@@ -44,6 +45,7 @@ namespace IOptionTest.Controllers
         [Route("/api/logger")]
         [ValidateModelState]
         [SwaggerOperation("LogMessage")]
+        [Authorize(Policy="CustomAuthenticationB", AuthenticationSchemes="CustomAuthenticationB")]
         public virtual IActionResult LogMessage([FromBody]Message message)
         {
             _logger.Log(message.Level, "{eyeCatcher} Logging with {level} and message {message}",
@@ -63,6 +65,7 @@ namespace IOptionTest.Controllers
         [ValidateModelState]
         [SwaggerOperation("LogMessageCount")]
         [SwaggerResponse(statusCode: 200, type: typeof(Timings), description: "Ok")]
+        [Authorize("CustomAuthenticationA")]
         public virtual ActionResult<Timings> LogMessageCount([FromBody] Message message, [FromRoute][Required] int logCount,
         [FromQuery] bool useNullLogger = true)
         {
