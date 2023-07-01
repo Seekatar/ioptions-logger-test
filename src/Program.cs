@@ -88,9 +88,9 @@ builder.Services.AddOptions<MyAuthenticationSchemeOptions>()
 
 builder.Services
     .AddAuthentication()
-    .AddCustomAuthentication(SchemeA, NameClaimA)
-    .AddCustomAuthentication(SchemeB, NameClaimB)
-    .AddCustomAuthentication(SchemeC, NameClaimC);
+    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA )
+    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB )
+    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC );
 
 builder.Services.AddAuthorization(options =>
 {

@@ -47,14 +47,3 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, ClaimTypes.Name)));
     }
 }
-
-public static class CustomAuthenticationExtensions
-{
-    public static AuthenticationBuilder AddCustomAuthentication(this AuthenticationBuilder builder, string authenticationScheme, string name)
-    {
-        return builder.AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(authenticationScheme, options =>
-        {
-            options.Name = name;
-        });
-    }
-}
