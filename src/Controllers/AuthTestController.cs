@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.ComponentModel.DataAnnotations;
-
+using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using IOptionTest;
 using System.Threading.Tasks;
@@ -41,7 +41,7 @@ namespace IOptionTest.Controllers
         [Authorize(PolicyA)]
         public virtual ActionResult<Message> GetAuthA()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace IOptionTest.Controllers
         [Authorize(PolicyB, AuthenticationSchemes = SchemeB)]
         public virtual ActionResult<Message> GetAuthAB()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
         /// <summary>
         /// Get output for test
@@ -70,7 +70,7 @@ namespace IOptionTest.Controllers
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
         public virtual ActionResult<Message> GetAuthAnon()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace IOptionTest.Controllers
         [Authorize(PolicyAorB)]
         public virtual ActionResult<Message> GetAuthAorB()
         { 
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
 		}
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace IOptionTest.Controllers
         [Authorize(PolicyB)]
         public virtual ActionResult<Message> GetAuthB()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace IOptionTest.Controllers
         [Authorize(PolicyB, AuthenticationSchemes = SchemeB)]
         public virtual ActionResult<Message> GetAuthBScheme()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
 
         /// <summary>
@@ -124,13 +124,28 @@ namespace IOptionTest.Controllers
         /// <response code="200">Ok</response>
         /// <response code="400">bad input parameter</response>
         [HttpGet]
-        [Route("/api/auth/c")]
-        [SwaggerOperation("GetAuthC")]
+        [Route("/api/auth/any")]
+        [SwaggerOperation("GetAuthAnyRole")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(PolicyC)]
-        public virtual ActionResult<Message> GetAuthC()
+        [Authorize(PolicyAnyRole)]
+        public virtual ActionResult<Message> GetAuthAnyRole()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
+        }
+
+        /// <summary>
+        /// Get output for test
+        /// </summary>
+        /// <response code="200">Ok</response>
+        /// <response code="400">bad input parameter</response>
+        [HttpGet]
+        [Route("/api/auth/a-role-c")]
+        [SwaggerOperation("GetAuthARoleC")]
+        [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
+        [Authorize(PolicyUserAandRoleC)]
+        public virtual ActionResult<Message> GetAuthARoleC()
+        {
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
 
         /// <summary>
@@ -145,7 +160,7 @@ namespace IOptionTest.Controllers
         [Authorize]
         public virtual ActionResult<Message> GetAuthNone()
         {
-            return Ok(new Message() { _Message = "Hello World" });
+            return Ok(new Message() { Text = $"Hello from {MethodBase.GetCurrentMethod()!.Name}" });
         }
     }
 }

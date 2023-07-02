@@ -83,9 +83,6 @@ builder.Services.AddOptions<SnapshotOptions>()
 #endregion
 
 #region Add Auth Test Services
-builder.Services.AddOptions<MyAuthenticationSchemeOptions>()
-        .Bind(builder.Configuration.GetSection("MyAuthenticationSchemeOptions"));
-
 builder.Services
     .AddAuthentication()
     .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA )
@@ -94,25 +91,35 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
+    // UserA and RoleA required
     options.AddPolicy(PolicyA, policy =>
         {
             policy.AddAuthenticationSchemes(SchemeA)
                   .RequireAuthenticatedUser()
                   .RequireRole(RoleA);
         });
+    // UserB required, no scheme specified here so must be specified in [Authorize] attribute
     options.AddPolicy(PolicyB, policy =>
         {
             policy.RequireAuthenticatedUser()
                   .RequireRole(RoleB);
         });
+    // UserA or UserB required in RoleA or RoleB
     options.AddPolicy(PolicyAorB, policy =>
         {
             policy.RequireAuthenticatedUser()
                   .AddAuthenticationSchemes(SchemeA, SchemeB)
                   .RequireRole(RoleA, RoleB);
         });
-    options.AddPolicy(PolicyC, policy => {
-            policy.RequireAuthenticatedUser();
+    // UserA,B,C any role
+    options.AddPolicy(PolicyAnyRole, policy => {
+            policy.RequireAuthenticatedUser()
+                  .AddAuthenticationSchemes(SchemeA, SchemeB, SchemeC);
+        });
+    // UserA and RoleC required
+    options.AddPolicy(PolicyUserAandRoleC, policy => {
+            policy.AddAuthenticationSchemes(SchemeA)
+                  .RequireRole(RoleC);
         });
 });
 #endregion

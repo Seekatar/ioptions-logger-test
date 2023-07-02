@@ -22,11 +22,10 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         // faked out authentication for testing
         // X-Test-User must match the name to pass AUTHN.
         // X-Test-Role is a comma separated list of roles to add to the claims
-        Logger.LogInformation("Hi from HandleAuthenticateAsync named {handlerName}", Options.Name);
 
-        var user = Context.Request.Headers["X-Test-User"];
-        if (!(user.ElementAtOrDefault(0)?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
-            return Task.FromResult(AuthenticateResult.Fail($"'{user.ElementAtOrDefault(0)}' was not 'User{Options.Name}'"));
+        var user = Context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
+        if (!(user?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
+            return Task.FromResult(AuthenticateResult.Fail($"'{user}' was not 'User{Options.Name}'"));
 
         var claims = new List<Claim>
         {
@@ -40,7 +39,9 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
             foreach (var r in rstring.Split(","))
                 claims.Add(new Claim(ClaimTypes.Role, r));
         }
-        Logger.LogInformation("{handlerName} set claims: {claims}", Options.Name, string.Join(", ", claims.Select(c => c.Type + ":" + c.Value)));
+        Logger.LogInformation("Scheme{handlerName} was authenticated. Set claims on {user}: {claims}", Options.Name, 
+                                user, 
+                                string.Join(", ", claims.Select(c => c.Type.Split('/').Last() + " = '" + c.Value + "'")));
 
         var identity = new ClaimsIdentity(claims, ClaimTypes.Name);
         var principal = new ClaimsPrincipal(identity);

@@ -49,7 +49,7 @@ namespace IOptionTest.Controllers
         public virtual IActionResult LogMessage([FromBody]Message message)
         {
             _logger.Log(message.Level, "{eyeCatcher} Logging with {level} and message {message}",
-                                            EyeCatcher, message.Level, message._Message);
+                                            EyeCatcher, message.Level, message.Text);
             return Ok();
         }
 
@@ -76,13 +76,13 @@ namespace IOptionTest.Controllers
 
             var sw = Stopwatch.StartNew();
             for (int i = 0; i < logCount; i++)
-                _logger.LogInformation("_logger.Log says {Message} for {i}", message._Message, i);
+                _logger.LogInformation("_logger.Log says {Message} for {i}", message.Text, i);
             sw.Stop();
 
             var timing = new Timings { LoggerCallMs = sw.ElapsedMilliseconds };
             sw.Restart();
             for (int i = 0; i < logCount; i++)
-                LogSomething(message._Message, i);
+                LogSomething(message.Text, i);
             sw.Stop();
             timing.LoggerMessageMs = sw.ElapsedMilliseconds;
             return Ok(timing);

@@ -2,10 +2,11 @@ namespace IOptionTest;
 
 internal static class AuthConstants
 {
-    public const string PolicyA = "CustomPolicyA";
-    public const string PolicyB = "CustomPolicyB";
-    public const string PolicyAorB = "CustomPolicyAorB";
-    public const string PolicyC = "CustomPolicyC";   
+    public const string PolicyA = "PolicyA";
+    public const string PolicyB = "PolicyB";
+    public const string PolicyAorB = "PolicyAorB";
+    public const string PolicyAnyRole = "PolicyAnyRole";   
+    public const string PolicyUserAandRoleC = "PolicyUserAandRoleC";   
 
     public const string SchemeA = "SchemeA";
     public const string SchemeB = "SchemeB";

@@ -34,21 +34,6 @@ paths:
                 $ref: "#/components/schemas/message"
         "400":
           description: bad input parameter
-  /api/auth/b:
-    get:
-      tags:
-        - Auth test
-      summary: Get output for test
-      operationId: getAuthB
-      responses:
-        "200":
-          description: Ok
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/message"
-        "400":
-          description: bad input parameter
   /api/auth/anon:
     get:
       tags:
@@ -79,19 +64,19 @@ paths:
                 $ref: "#/components/schemas/message"
         "400":
           description: bad input parameter
-  /api/auth/b-scheme:
+  /api/auth/a-role-c:
     get:
       tags:
         - Auth test
       summary: Get output for test
-      operationId: getAuthBScheme
+      operationId: getAuthARoleC
       responses:
         "200":
           description: Ok
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/message"
+                $ref: "#/components/schemas/message" 
         "400":
           description: bad input parameter
   /api/auth/a-and-b:
@@ -124,12 +109,42 @@ paths:
                 $ref: "#/components/schemas/message"
         "400":
           description: bad input parameter
-  /api/auth/c:
+  /api/auth/any:
     get:
       tags:
         - Auth test
       summary: Get output for test
-      operationId: getAuthC
+      operationId: getAuthAnyRole
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/b:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthB
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/message"
+        "400":
+          description: bad input parameter
+  /api/auth/b-scheme:
+    get:
+      tags:
+        - Auth test
+      summary: Get output for test
+      operationId: getAuthBScheme
       responses:
         "200":
           description: Ok
@@ -287,7 +302,7 @@ components:
         - message
         - level
       properties:
-        message:
+        text:
           type: string
         level:
           type: string
