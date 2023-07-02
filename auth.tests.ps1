@@ -1,5 +1,11 @@
+param( 
+    [Parameter(Mandatory)]
+    [string] $UsedDefault # is the server running with -UseDefault parameter?
+) 
+
 BeforeAll {
     $uri = "http://localhost:5138/api/"
+    $haveDefaultScheme = $UsedDefault -eq 'true'
 }
 
 
@@ -57,7 +63,7 @@ Describe "Tests Auth success" {
         $result = Invoke-WebRequest "${uri}auth/any" -Headers @{ "X-Test-User" = "UserA"; "X-Test-Role" = "B,C" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
     }
-    
+
     It "Tests Any Role with UserB" {
         $result = Invoke-WebRequest "${uri}auth/any" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "C" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 200
@@ -102,17 +108,25 @@ Describe "Test auth denied" {
     }
 } 
 
-Describe "Tests auth policy configuration errors" {
+Describe "Tests auth policy possible errors" {
 
     It "Tests Auth B without a scheme" {
         $result = Invoke-WebRequest "${uri}auth/b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
-        # Error since policy doesn't have AuthN scheme
-        $result.StatusCode | Should -Be 500
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : 500)
     }
 
     It "Tests Policy without AuthN scheme" {
         $result = Invoke-WebRequest "${uri}auth" -SkipHttpErrorCheck
-        # Error with just [Authorize] since no default AuthN scheme
-        $result.StatusCode | Should -Be 500
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : 500)
     }
+
+    It "Tests Policy without AuthN scheme" {
+        $result = Invoke-WebRequest "${uri}auth" -Headers @{ "X-Test-User" = "UserA"; } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 200 : 500)
+    } 
+
+    It "Tests Policy without AuthN scheme" {
+        $result = Invoke-WebRequest "${uri}auth" -Headers @{ "X-Test-User" = "UserB"; } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : 500)
+    } 
 } 

@@ -83,8 +83,10 @@ builder.Services.AddOptions<SnapshotOptions>()
 #endregion
 
 #region Add Auth Test Services
+string? defaultScheme = (args.Length > 0 && string.Equals(args[0],"-UseDefault",StringComparison.OrdinalIgnoreCase)) ? SchemeA : "";
+
 builder.Services
-    .AddAuthentication()
+    .AddAuthentication(defaultScheme)
     .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA )
     .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB )
     .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC );
