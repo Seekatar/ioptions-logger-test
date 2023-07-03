@@ -24,7 +24,8 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         // X-Test-Role is a comma separated list of roles to add to the claims
 
         var user = Context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
-        if (!(user?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
+        if (!string.Equals(user, "User*", StringComparison.OrdinalIgnoreCase) &&
+            !(user?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
             return Task.FromResult(AuthenticateResult.Fail($"'{user}' was not 'User{Options.Name}'"));
 
         var claims = new List<Claim>

@@ -1,4 +1,4 @@
-namespace IOptionTest;
+namespace IOptionTest.Auth;
 
 internal static class AuthConstants
 {

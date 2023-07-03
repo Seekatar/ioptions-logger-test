@@ -10,7 +10,7 @@ using Serilog;
 using System.Net;
 using System.Security.Claims;
 using static IOptionTest.Options.ExceptionOptions;
-using static IOptionTest.AuthConstants;
+using static IOptionTest.Auth.AuthConstants;
 
 ExceptionHandler = ExceptionHandlerEnum.DotNet7;
 bool useExceptionLoggingFilter = false; // this will cause some redundant logging, but you get the idea

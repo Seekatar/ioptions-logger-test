@@ -18,8 +18,9 @@ using Microsoft.AspNetCore.Authorization;
 using IOptionTest;
 using System.Threading.Tasks;
 using IOptionTest.Models;
-using static IOptionTest.AuthConstants;
+using static IOptionTest.Auth.AuthConstants;
 using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 namespace IOptionTest.Controllers
 {
@@ -38,6 +39,25 @@ namespace IOptionTest.Controllers
             var schemes = _schemeProvider.GetAllSchemesAsync().Result;
 
             _logger.LogInformation("{method}", message);
+            
+            var name = context.User.FindFirst(ClaimTypes.Name)?.Value;
+            if (name is null)
+                _logger.LogInformation("    No Name claim");
+            else
+                _logger.LogInformation("    Name claim: {name}", name);
+
+            // log out all the role claims for the user
+            var roles = context.User.FindAll(ClaimTypes.Role);
+            if (roles is null)
+                _logger.LogInformation("    No Role claims");
+            else
+            {
+                foreach (var role in roles)
+                {
+                    _logger.LogInformation("    Role: {role}", role.Value);
+                }
+            }
+            
             foreach (var scheme in schemes)
             {
                 _logger.LogInformation("    {scheme}", scheme.Name);
