@@ -1,5 +1,6 @@
 # IConfiguration & IOptions & ILogger Test <!-- omit in toc -->
 
+- [Authentication and Authorization](#authentication-and-authorization)
 - [IConfiguration](#iconfiguration)
   - [ASP.NET's Default IConfiguration](#aspnets-default-iconfiguration)
   - [Syntax for Values](#syntax-for-values)
@@ -27,7 +28,11 @@
 - [Codespace-Enabled Repo](#codespace-enabled-repo)
   - [Links](#links)
 
-This repo has tests for `IOptions`, `IConfiguration`, and `ILogger`. This sample ASP.NET app demonstrates the topics briefly described below.
+This repo has tests for `IOptions`, `IConfiguration`, `ILogger`, and ASP.NET auth. This sample ASP.NET app demonstrates the topics briefly described below.
+
+## Authentication and Authorization
+
+Added for a [July 2023](https://seekatar.github.io/) blog post, the repo now support auth for a new `AuthTestController`. See the blog for details.
 
 ## [IConfiguration](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.configuration.iconfiguration)
 
