@@ -2,6 +2,7 @@ using IOptionTest;
 using IOptionTest.Interfaces;
 using IOptionTest.Options;
 using IOptionTest.Services;
+using IOptionTest.Auth;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Seekatar.Tools;
@@ -83,7 +84,7 @@ builder.Services.AddOptions<SnapshotOptions>()
 #endregion
 
 #region Add Auth Test Services
-string? defaultScheme = (args.Length > 0 && string.Equals(args[0],"-UseDefault",StringComparison.OrdinalIgnoreCase)) ? SchemeA : "";
+string? defaultScheme = (args.Length > 0 && args[0].StartsWith("Scheme")) ? args[0] : "";
 
 builder.Services
     .AddAuthentication(defaultScheme)
@@ -200,6 +201,9 @@ if (ExceptionHandler == ExceptionHandlerEnum.UsePages)
 
 app.UseHttpsRedirection();
 
+app.UseMiddleware<AuthLoggingMiddleware>();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

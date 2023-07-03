@@ -17,7 +17,8 @@ param(
                     }
         }
      })]
-    [string[]]$Tasks
+    [string[]]$Tasks,
+    [string] $DefaultAuthScheme
 )
 
 Push-Location $PSScriptRoot
@@ -26,13 +27,9 @@ try {
 
 foreach ($task in $Tasks) {
     switch ($task) {
-        'watchDefault' {  
-            Set-Location src
-            dotnet watch run --project .\options-logger-test.csproj -- -UseDefault
-        }
         'watch' {  
             Set-Location src
-            dotnet watch run --project .\options-logger-test.csproj
+            dotnet watch run --project .\options-logger-test.csproj -- $DefaultAuthScheme
         }
         'generate' {
             if ((Test-Path ../swagger-codegen/Invoke-SwaggerGen.ps1)) {
