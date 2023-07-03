@@ -33,11 +33,9 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
             new Claim(ClaimTypes.Name, Options.Name),
         };
 
-        var role = Context.Request.Headers["X-Test-Role"];
-        foreach (var rstring in role)
-        {
-            if (rstring is null) continue;
-            foreach (var r in rstring.Split(","))
+        var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault();
+        if (role is not null) {
+            foreach (var r in role.Split(","))
                 claims.Add(new Claim(ClaimTypes.Role, r));
         }
         Logger.LogInformation("Scheme{handlerName} was authenticated. Set claims on {user}: {claims}", Options.Name, 

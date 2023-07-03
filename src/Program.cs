@@ -101,7 +101,7 @@ builder.Services.AddAuthorization(options =>
                   .RequireAuthenticatedUser()
                   .RequireRole(RoleA);
         });
-    // UserB required, no scheme specified here so must be specified in [Authorize] attribute
+    // UserB required, no scheme specified here so must be specified in [Authorize] attribute if no default
     options.AddPolicy(PolicyB, policy =>
         {
             policy.RequireAuthenticatedUser()
