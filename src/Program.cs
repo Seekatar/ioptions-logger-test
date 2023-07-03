@@ -98,25 +98,22 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(PolicyA, policy =>
         {
             policy.AddAuthenticationSchemes(SchemeA)
-                  .RequireAuthenticatedUser()
                   .RequireRole(RoleA);
         });
     // UserB required, no scheme specified here so must be specified in [Authorize] attribute if no default
     options.AddPolicy(PolicyB, policy =>
         {
-            policy.RequireAuthenticatedUser()
-                  .RequireRole(RoleB);
+            policy.RequireRole(RoleB);
         });
     // UserA or UserB required in RoleA or RoleB
     options.AddPolicy(PolicyAorB, policy =>
         {
-            policy.RequireAuthenticatedUser()
-                  .AddAuthenticationSchemes(SchemeA, SchemeB)
+            policy.AddAuthenticationSchemes(SchemeA, SchemeB)
                   .RequireRole(RoleA, RoleB);
         });
     // UserA,B,C any role
     options.AddPolicy(PolicyAnyRole, policy => {
-            policy.RequireAuthenticatedUser()
+            policy.RequireAuthenticatedUser() // needed 
                   .AddAuthenticationSchemes(SchemeA, SchemeB, SchemeC);
         });
     // UserA and RoleC required
