@@ -14,6 +14,7 @@ using IOptionTest.Attributes;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.ComponentModel.DataAnnotations;
+using Serilog.Context;
 
 namespace IOptionTest.Controllers
 {
@@ -46,6 +47,20 @@ namespace IOptionTest.Controllers
         [SwaggerOperation("LogMessage")]
         public virtual IActionResult LogMessage([FromBody]Message message)
         {
+            using var lc = LogContext.PushProperty("ClientId", 1);
+            var scope = new Dictionary<string, object>();
+            scope.Add("clientId2", 123);
+            scope.Add("marketEntityId2", 435);
+            using var _loggerScope = _logger.BeginScope(scope);
+
+            Sentry.SentrySdk.ConfigureScope(scope =>
+            {
+                scope.SetTag("clientId", message.ClientId);
+                scope.SetTag("marketEntityId", "888");
+            });
+
+            Task.Delay(TimeSpan.FromSeconds(message.DelaySeconds)).Wait();
+
             _logger.Log(message.Level, "{eyeCatcher} Logging with {level} and message {message}",
                                             EyeCatcher, message.Level, message.Text);
             return Ok();
