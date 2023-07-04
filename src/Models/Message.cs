@@ -120,7 +120,6 @@ namespace IOptionTest.Models
                 ) &&
                 (
                     DelaySeconds == other.DelaySeconds ||
-                    DelaySeconds != null &&
                     DelaySeconds.Equals(other.DelaySeconds)
                 ) &&
                 (
@@ -144,7 +143,6 @@ namespace IOptionTest.Models
                     hashCode = hashCode * 59 + Text.GetHashCode();
 
                 hashCode = hashCode * 59 + Level.GetHashCode();
-                    if (DelaySeconds != null)
                     hashCode = hashCode * 59 + DelaySeconds.GetHashCode();
                     if (ClientId != null)
                     hashCode = hashCode * 59 + ClientId.GetHashCode();
