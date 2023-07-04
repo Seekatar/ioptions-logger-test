@@ -95,7 +95,7 @@ namespace IOptionTest.Controllers
         [Route("/api/auth/a-and-b")]
         [SwaggerOperation("GetAuthAB")]
         [SwaggerResponse(statusCode: 200, type: typeof(Message), description: "Ok")]
-        [Authorize(PolicyA)]
+        [Authorize(PolicyA, AuthenticationSchemes = SchemeA)]
         [Authorize(PolicyB, AuthenticationSchemes = SchemeB)]
         public virtual ActionResult<Message> GetAuthAB()
         {

@@ -112,7 +112,7 @@ Describe "Tests auth policy possible errors" {
 
     It "Tests Auth B without a scheme" {
         $result = Invoke-WebRequest "${uri}auth/b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : 500)
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 200 : 500)
     }
 
     It "Tests Policy without AuthN scheme" {
@@ -127,6 +127,6 @@ Describe "Tests auth policy possible errors" {
 
     It "Tests Policy without AuthN scheme" {
         $result = Invoke-WebRequest "${uri}auth" -Headers @{ "X-Test-User" = "UserB"; } -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : 500)
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 200 : 500)
     } 
 } 

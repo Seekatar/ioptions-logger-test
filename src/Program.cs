@@ -87,18 +87,21 @@ builder.Services.AddOptions<SnapshotOptions>()
 string? defaultScheme = (args.Length > 0 && args[0].StartsWith("Scheme")) ? args[0] : "";
 
 builder.Services
-    .AddAuthentication(defaultScheme)
-    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA )
-    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB )
-    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC );
+    .AddAuthentication(SchemeForwarding)
+    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA)
+    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB)
+    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC)
+    .AddPolicyScheme(SchemeForwarding, SchemeForwarding, options =>
+    {
+        options.ForwardDefaultSelector = ForwardSelectorFromUser;
+    });
 
 builder.Services.AddAuthorization(options =>
 {
     // UserA and RoleA required
     options.AddPolicy(PolicyA, policy =>
         {
-            policy.AddAuthenticationSchemes(SchemeA)
-                  .RequireRole(RoleA);
+            policy.RequireRole(RoleA);
         });
     // UserB required, no scheme specified here so must be specified in [Authorize] attribute if no default
     options.AddPolicy(PolicyB, policy =>
@@ -112,10 +115,10 @@ builder.Services.AddAuthorization(options =>
                   .RequireRole(RoleA, RoleB);
         });
     // UserA,B,C any role
-    options.AddPolicy(PolicyAnyRole, policy => {
-            policy.RequireAuthenticatedUser() // needed 
-                  .AddAuthenticationSchemes(SchemeA, SchemeB, SchemeC);
-        });
+    options.AddPolicy(PolicyAnyRole, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
     // UserA and RoleC required
     options.AddPolicy(PolicyUserAandRoleC, policy => {
             policy.AddAuthenticationSchemes(SchemeA)
@@ -215,3 +218,14 @@ if (ExceptionHandler == ExceptionHandlerEnum.UseMyMiddleWare)
 app.Run();
 
 #pragma warning restore CA2254
+
+static string ForwardSelectorFromUser(HttpContext context)
+{
+    var user = context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
+    if (user is not null && user.StartsWith("User") && user.Length > 4 && user[4] is >= 'A' and <= 'C')
+    {
+        return $"Scheme{user[4..]}";
+    }
+    return SchemeA;
+}
+

@@ -8,6 +8,7 @@ internal static class AuthConstants
     public const string PolicyAnyRole = "PolicyAnyRole";   
     public const string PolicyUserAandRoleC = "PolicyUserAandRoleC";   
 
+    public const string SchemeForwarding = "SchemeForwarding";
     public const string SchemeA = "SchemeA";
     public const string SchemeB = "SchemeB";
     public const string SchemeC = "SchemeC";

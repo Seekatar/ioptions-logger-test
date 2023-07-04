@@ -26,7 +26,11 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         var user = Context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
         if (!string.Equals(user, "User*", StringComparison.OrdinalIgnoreCase) &&
             !(user?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
-            return Task.FromResult(AuthenticateResult.Fail($"'{user}' was not 'User{Options.Name}'"));
+        {
+            Logger.LogInformation("Scheme{handlerName} returning NoResult on {user}", Options.Name, 
+                                user);
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
 
         var claims = new List<Claim>
         {
