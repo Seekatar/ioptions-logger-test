@@ -1,5 +1,6 @@
 # IConfiguration & IOptions & ILogger Test <!-- omit in toc -->
 
+- [Authentication and Authorization](#authentication-and-authorization)
 - [IConfiguration](#iconfiguration)
   - [ASP.NET's Default IConfiguration](#aspnets-default-iconfiguration)
   - [Syntax for Values](#syntax-for-values)
@@ -18,6 +19,8 @@
 - [Console Apps](#console-apps)
 - [Generating Code From the OAS file](#generating-code-from-the-oas-file)
 - [Returning ProblemDetails from a Controller](#returning-problemdetails-from-a-controller)
+  - [.NET 7's ProblemDetailsService](#net-7s-problemdetailsservice)
+  - [.NET 6 Method](#net-6-method)
   - [Using Hellang's Middleware (ExceptionHandlerEnum.UseHellang)](#using-hellangs-middleware-exceptionhandlerenumusehellang)
   - [Error Pages (ExceptionHandlerEnum.UsePages)](#error-pages-exceptionhandlerenumusepages)
   - [Function to Handle Error (ExceptionHandlerEnum.UseExceptionHandler)](#function-to-handle-error-exceptionhandlerenumuseexceptionhandler)
@@ -25,7 +28,11 @@
 - [Codespace-Enabled Repo](#codespace-enabled-repo)
   - [Links](#links)
 
-This repo has tests for `IOptions`, `IConfiguration`, and `ILogger`. This sample ASP.NET app demonstrates the topics briefly described below.
+This repo has tests for `IOptions`, `IConfiguration`, `ILogger`, and ASP.NET auth. This sample ASP.NET app demonstrates the topics briefly described below.
+
+## Authentication and Authorization
+
+Added for a [July 2023](https://seekatar.github.io/) blog post, the repo now support auth for a new `AuthTestController`. See the blog for details.
 
 ## [IConfiguration](https://docs.microsoft.com/en-us/dotnet/api/microsoft.extensions.configuration.iconfiguration)
 
@@ -233,10 +240,40 @@ All of this can also be used in Console apps, but requires a bit more code since
 I used an [OAS file](oas/openapi.yaml) to generate code. This [repo](https://github.com/Seekatar/swagger-codegen) is the one I created and use to generate code from the OAS file.
 
 ```powershell
-../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
+../../swagger-codegen/Invoke-SwaggerGen.ps1 -OASFile ./oas/openapi.yaml -Namespace IOptionTest -OutputFolder /mnt/c/temp/options -RenameController
 ```
 
 ## Returning ProblemDetails from a Controller
+
+### .NET 7's ProblemDetailsService
+
+.NET 7 has a [ProblemDetailsService](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iproblemdetailsservice) as described in this [MS blog post](https://devblogs.microsoft.com/dotnet/asp-net-core-updates-in-dotnet-7-preview-7/#new-problem-details-service). In addition, [this blog](https://www.strathweb.com/2022/08/problem-details-responses-everywhere-with-asp-net-core-and-net-7/) also has a good overview. I added `DotNet7` enum value to be able to turn it on in `program.cs`
+
+Simply turning it on is great if your in developer mode and add `UseDeveloperExceptionPage()`, but turning that off for a release build sends JSON that just looks like this regardless of the exception you throw.
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+  "title": "An error occurred while processing your request.",
+  "status": 500
+}
+```
+
+> Why don't they have a `ProblemDetailsException` that you can throw? Hellang does. And I've seen others wrap [ProblemDetails](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) with an `Exception`.
+
+To allow code to throw a nice [ProblemDetails](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) (Which has been around since .NET Core 2.1) I've added custom middleware to catch Hellang's implementation of `ProblemDetailsException` and pull out its [ProblemDetails](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) and pass it to the new [ProblemDetailsService.WriteAsync](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.iproblemdetailsservice.writeasync) method to write the response include all the details of the exception:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Throwing Problem Details",
+  "status": 500,
+  "detail": "My detail message, look for a and status of 500",
+  "a": 1232
+}
+```
+
+### .NET 6 Method
 
 The .NET [ProblemDetails](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.problemdetails) class conforms to the [RFC7807](https://tools.ietf.org/html/rfc7807) standard for returning errors from an API. ASP.NET Core also has a [Results.Problem](https://docs.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.results.problem) method to return a `ProblemDetails` object from a controller.
 

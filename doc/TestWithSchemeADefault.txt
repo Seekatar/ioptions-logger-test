@@ -1,0 +1,149 @@
+// With SchemeA default
+>>>> /api/auth/a
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'A'
+GetAuthA
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/b-scheme
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'B'
+GetAuthBScheme
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-and-b
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'A', role = 'B'
+SchemeB was not authenticated. Failure message: 'UserA' was not 'UserB'
+GetAuthAB
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-and-b
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'A', role = 'B'
+GetAuthAB
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-and-b
+SchemeA was not authenticated. Failure message: 'UserC' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserC' was not 'UserA'
+SchemeB was not authenticated. Failure message: 'UserC' was not 'UserB'
+AuthenticationScheme: SchemeA was challenged.
+AuthenticationScheme: SchemeB was challenged.
+>>>> /api/auth/a-or-b
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'A'
+SchemeB was not authenticated. Failure message: 'UserA' was not 'UserB'
+GetAuthAorB
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-or-b
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'B'
+GetAuthAorB
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-or-b
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'A', role = 'B'
+GetAuthAorB
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/anon
+SchemeA was not authenticated. Failure message: '' was not 'UserA'
+GetAuthAnon
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-role-c
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'C'
+GetAuthARoleC
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/any
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'A'
+SchemeB was not authenticated. Failure message: 'UserA' was not 'UserB'
+SchemeC was not authenticated. Failure message: 'UserA' was not 'UserC'
+GetAuthAnyRole
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/any
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'B', role = 'C'
+SchemeB was not authenticated. Failure message: 'UserA' was not 'UserB'
+SchemeC was not authenticated. Failure message: 'UserA' was not 'UserC'
+GetAuthAnyRole
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/any
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'C'
+SchemeC was not authenticated. Failure message: 'UserB' was not 'UserC'
+GetAuthAnyRole
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth/a-and-b
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'A'
+SchemeB was not authenticated. Failure message: 'UserA' was not 'UserB'
+AuthenticationScheme: SchemeA was forbidden.
+AuthenticationScheme: SchemeB was forbidden.
+>>>> /api/auth/a-and-b
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'B'
+AuthenticationScheme: SchemeA was forbidden.
+AuthenticationScheme: SchemeB was forbidden.
+>>>> /api/auth/a-or-b
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeB was authenticated. Set claims on UserB: name = 'B', role = 'C'
+AuthenticationScheme: SchemeA was forbidden.
+AuthenticationScheme: SchemeB was forbidden.
+>>>> /api/auth/a-or-b
+SchemeA was not authenticated. Failure message: 'UserC' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserC' was not 'UserA'
+SchemeB was not authenticated. Failure message: 'UserC' was not 'UserB'
+AuthenticationScheme: SchemeA was challenged.
+AuthenticationScheme: SchemeB was challenged.
+>>>> /api/auth/a-role-c
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+AuthenticationScheme: SchemeA was challenged.
+>>>> /api/auth/a-role-c
+SchemeA was authenticated. Set claims on UserA: name = 'A', role = 'A'
+AuthenticationScheme: SchemeA was forbidden.
+>>>> /api/auth/any
+SchemeA was not authenticated. Failure message: 'UserZ' was not 'UserA'
+SchemeA was not authenticated. Failure message: 'UserZ' was not 'UserA'
+SchemeB was not authenticated. Failure message: 'UserZ' was not 'UserB'
+SchemeC was not authenticated. Failure message: 'UserZ' was not 'UserC'
+AuthenticationScheme: SchemeA was challenged.
+AuthenticationScheme: SchemeB was challenged.
+AuthenticationScheme: SchemeC was challenged.
+>>>> /api/auth/b
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+AuthenticationScheme: SchemeA was challenged.
+>>>> /api/auth
+SchemeA was not authenticated. Failure message: '' was not 'UserA'
+AuthenticationScheme: SchemeA was challenged.
+>>>> /api/auth
+SchemeA was authenticated. Set claims on UserA: name = 'A'
+GetAuthNone
+    SchemeA
+    SchemeB
+    SchemeC
+>>>> /api/auth
+SchemeA was not authenticated. Failure message: 'UserB' was not 'UserA'
+AuthenticationScheme: SchemeA was challenged.
+

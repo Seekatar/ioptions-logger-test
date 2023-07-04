@@ -28,7 +28,7 @@ namespace IOptionTest.Services
         public Task<Configuration> GetConfigurationSection()
         {
             var ret = _configuration.GetSection(Configuration.SectionName).Get<Configuration>();
-            ret.Name = "ConfigurationSection";
+            ret!.Name = "ConfigurationSection";
             return Task.FromResult(ret);
         }
     }

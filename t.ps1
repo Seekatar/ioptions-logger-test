@@ -2,12 +2,17 @@
 param (
     [switch] $Correlation
 )
-$headers = @{}
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+
+$headers = @{
+    "Accept" = "application/json"
+}
 if ($Correlation) {
     $headers = @{
-        "Content-Type" = "application/json"
+        "Content-Type"     = "application/json"
         "X-Correlation-Id" = [Guid]::NewGuid().ToString()
-        "Accept" = "application/json"
+        "Accept"           = "application/json"
     }
 }
 $uri = "http://localhost:5138/api/"

@@ -32,12 +32,12 @@ namespace IOptionTest.Models
     public partial class Message : IEquatable<Message>
     {
         /// <summary>
-        /// Gets or Sets _Message
+        /// Gets or Sets Text
         /// </summary>
         [Required]
 
-        [DataMember(Name="message")]
-        public string _Message { get; set; }
+        [DataMember(Name = "message")]
+        public string Text { get; set; }
 
         /// <summary>
         /// Gets or Sets Level
@@ -69,7 +69,7 @@ namespace IOptionTest.Models
         {
             var sb = new StringBuilder();
             sb.Append("class Message {\n");
-            sb.Append("  _Message: ").Append(_Message).Append("\n");
+            sb.Append("  Text: ").Append(Text).Append("\n");
             sb.Append("  Level: ").Append(Level).Append("\n");
             sb.Append("  DelaySeconds: ").Append(DelaySeconds).Append("\n");
             sb.Append("  ClientId: ").Append(ClientId).Append("\n");
@@ -110,9 +110,9 @@ namespace IOptionTest.Models
 
             return
                 (
-                    _Message == other._Message ||
-                    _Message != null &&
-                    _Message.Equals(other._Message)
+                    Text == other.Text ||
+                    Text != null &&
+                    Text.Equals(other.Text)
                 ) &&
                 (
                     Level == other.Level ||
@@ -120,7 +120,6 @@ namespace IOptionTest.Models
                 ) &&
                 (
                     DelaySeconds == other.DelaySeconds ||
-                    DelaySeconds != null &&
                     DelaySeconds.Equals(other.DelaySeconds)
                 ) &&
                 (
@@ -140,11 +139,10 @@ namespace IOptionTest.Models
             {
                 var hashCode = 41;
                 // Suitable nullity checks etc, of course :)
-                if (_Message != null)
-                    hashCode = hashCode * 59 + _Message.GetHashCode();
+                if (Text != null)
+                    hashCode = hashCode * 59 + Text.GetHashCode();
 
                 hashCode = hashCode * 59 + Level.GetHashCode();
-                    if (DelaySeconds != null)
                     hashCode = hashCode * 59 + DelaySeconds.GetHashCode();
                     if (ClientId != null)
                     hashCode = hashCode * 59 + ClientId.GetHashCode();

@@ -2,6 +2,9 @@
 param (
     [switch] $Correlation
 )
+$ErrorActionPreference = "Stop"
+Set-StrictMode -Version Latest
+
 $headers = @{}
 if ($Correlation) {
     $headers = @{
