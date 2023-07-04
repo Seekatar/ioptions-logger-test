@@ -18,6 +18,7 @@ param(
         }
      })]
     [string[]]$Tasks,
+    [ValidateSet('SchemeA', 'SchemeB', 'SchemeC')]
     [string] $DefaultAuthScheme
 )
 
