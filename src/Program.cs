@@ -120,10 +120,11 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser();
     });
     // UserA and RoleC required
-    options.AddPolicy(PolicyUserAandRoleC, policy => {
-            policy.AddAuthenticationSchemes(SchemeA)
-                  .RequireRole(RoleC);
-        });
+    options.AddPolicy(PolicyUserAandRoleC, policy =>
+    {
+        policy.AddAuthenticationSchemes(SchemeA)
+              .RequireRole(RoleC);
+    });
 });
 #endregion
 
@@ -222,10 +223,12 @@ app.Run();
 static string ForwardSelectorFromUser(HttpContext context)
 {
     var user = context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
+    var scheme = SchemeA; // default
     if (user is not null && user.StartsWith("User") && user.Length > 4 && user[4] is >= 'A' and <= 'C')
     {
-        return $"Scheme{user[4..]}";
+        scheme = $"Scheme{user[4..]}";
     }
-    return SchemeA;
+    Console.WriteLine($"ForwardSelectorFromUser returning {scheme}");
+    return scheme;
 }
 

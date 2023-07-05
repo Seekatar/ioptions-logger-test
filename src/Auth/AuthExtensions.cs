@@ -23,11 +23,11 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         // X-Test-User must match the name to pass AUTHN.
         // X-Test-Role is a comma separated list of roles to add to the claims
 
-        var user = Context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
+        var user = Request.Headers["X-Test-User"].ElementAtOrDefault(0);
         if (!string.Equals(user, "User*", StringComparison.OrdinalIgnoreCase) &&
             !(user?.Equals($"User{Options.Name}", StringComparison.OrdinalIgnoreCase) ?? false))
         {
-            Logger.LogInformation("Scheme{handlerName} returning NoResult on {user}", Options.Name, 
+            Logger.LogInformation("Scheme{handlerName} returning NoResult on {user}", Options.Name,
                                 user);
             return Task.FromResult(AuthenticateResult.NoResult());
         }
@@ -38,16 +38,31 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         };
 
         var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault();
-        if (role is not null) {
+        if (role is not null)
+        {
             foreach (var r in role.Split(","))
                 claims.Add(new Claim(ClaimTypes.Role, r));
         }
-        Logger.LogInformation("Scheme{handlerName} was authenticated. Set claims on {user}: {claims}", Options.Name, 
-                                user, 
+        Logger.LogInformation("Scheme{handlerName} was authenticated. Set claims on {user}: {claims}", Options.Name,
+                                user,
                                 string.Join(", ", claims.Select(c => c.Type.Split('/').Last() + " = '" + c.Value + "'")));
 
         var identity = new ClaimsIdentity(claims, ClaimTypes.Name);
         var principal = new ClaimsPrincipal(identity);
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, ClaimTypes.Name)));
     }
+
+    protected override Task HandleChallengeAsync(AuthenticationProperties properties)
+    {
+        // called when authentication fails and 401 will be returned.
+        Logger.LogInformation("Scheme{handlerName} was challenged", Options.Name);
+        return base.HandleChallengeAsync(properties);
+    }
+
+    protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
+    {
+        Logger.LogInformation("Scheme{handlerName} was forbidden", Options.Name);
+        return base.HandleForbiddenAsync(properties);
+    }
+
 }
