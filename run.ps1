@@ -18,7 +18,7 @@ param(
         }
      })]
     [string[]]$Tasks,
-    [ValidateSet('SchemeA', 'SchemeB', 'SchemeC', 'forward')]
+    [ValidateSet('SchemeA', 'SchemeB', 'SchemeC', 'forward', IgnoreCase = $false)]
     [string] $DefaultAuthScheme
 )
 
@@ -42,12 +42,8 @@ foreach ($task in $Tasks) {
                 Write-Warning 'Swagger codegen not found'
             }
         }
-        'testDefault' {  
-            $container = New-PesterContainer -Path . -Data @{ usedDefault='true' }
-            Invoke-Pester -Container $container
-        }
         'test' {  
-            $container = New-PesterContainer -Path . -Data @{ usedDefault='false' }
+            $container = New-PesterContainer -Path . -Data @{ DefaultAuthScheme = $DefaultAuthScheme ? $DefaultAuthScheme : '-' } # can't be empty
             Invoke-Pester -Container $container
         }
         Default {

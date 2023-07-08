@@ -58,10 +58,12 @@ namespace IOptionTest.Controllers
                 }
             }
             
+            #if list_all_schemes
             foreach (var scheme in schemes)
             {
                 _logger.LogInformation("    {scheme}", scheme.Name);
             }
+            #endif
             return Ok(new Message { Text = message });
         }
 

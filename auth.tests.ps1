@@ -1,11 +1,12 @@
 param( 
     [Parameter(Mandatory)]
-    [string] $UsedDefault # is the server running with -UseDefault parameter?
+    [string] $DefaultAuthScheme # is the server running with -UseDefault parameter?
 ) 
 
 BeforeAll {
     $uri = "http://localhost:5138/api/"
-    $haveDefaultScheme = $UsedDefault -eq 'true'
+    $usingForwarder = $DefaultAuthScheme -eq 'forward'
+    $haveDefaultScheme = $DefaultAuthScheme -like 'Scheme*'
 }
 
 
@@ -77,6 +78,11 @@ Describe "Test auth denied" {
         $result.StatusCode | Should -Be 403
     }
 
+    It "Tests Auth A as B" {
+        $result = Invoke-WebRequest "${uri}auth/a" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "A" } -SkipHttpErrorCheck
+        $result.StatusCode | Should -Be 401
+    }
+
     It "Tests Auth A and B with only B" {
         $result = Invoke-WebRequest "${uri}auth/a-and-b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
         $result.StatusCode | Should -Be 403
@@ -112,21 +118,21 @@ Describe "Tests auth policy possible errors" {
 
     It "Tests Auth B without a scheme" {
         $result = Invoke-WebRequest "${uri}auth/b" -Headers @{ "X-Test-User" = "UserB"; "X-Test-Role" = "B" } -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be ($haveDefaultScheme ? 200 : 500)
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : ($usingForwarder ? 200  : 500))
     }
 
     It "Tests Policy without AuthN scheme" {
         $result = Invoke-WebRequest "${uri}auth" -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : 500)
+        $result.StatusCode | Should -Be ($haveDefaultScheme -or $usingForwarder ? 401 : 500)
     }
 
     It "Tests Policy without AuthN scheme" {
         $result = Invoke-WebRequest "${uri}auth" -Headers @{ "X-Test-User" = "UserA"; } -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be ($haveDefaultScheme ? 200 : 500)
+        $result.StatusCode | Should -Be ($haveDefaultScheme -or $usingForwarder ? 200 : 500)
     } 
 
     It "Tests Policy without AuthN scheme" {
         $result = Invoke-WebRequest "${uri}auth" -Headers @{ "X-Test-User" = "UserB"; } -SkipHttpErrorCheck
-        $result.StatusCode | Should -Be ($haveDefaultScheme ? 200 : 500)
+        $result.StatusCode | Should -Be ($haveDefaultScheme ? 401 : ($usingForwarder ? 200 : 500))
     } 
 } 
