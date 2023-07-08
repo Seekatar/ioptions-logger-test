@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Seekatar.Tools;
 using Serilog;
 using System.Net;
-using System.Security.Claims;
 using static IOptionTest.Options.ExceptionOptions;
 using static IOptionTest.Auth.AuthConstants;
 
@@ -84,48 +83,17 @@ builder.Services.AddOptions<SnapshotOptions>()
 #endregion
 
 #region Add Auth Test Services
-string? defaultScheme = (args.Length > 0 && args[0].StartsWith("Scheme")) ? args[0] : "";
-
-builder.Services
-    .AddAuthentication(SchemeForwarding)
-    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA)
-    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB)
-    .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC)
-    .AddPolicyScheme(SchemeForwarding, SchemeForwarding, options =>
-    {
-        options.ForwardDefaultSelector = ForwardSelectorFromUser;
-    });
-
-builder.Services.AddAuthorization(options =>
+if (args.Length > 0 && string.Equals(args[0], "forward", StringComparison.OrdinalIgnoreCase))
 {
-    // UserA and RoleA required
-    options.AddPolicy(PolicyA, policy =>
-        {
-            policy.RequireRole(RoleA);
-        });
-    // UserB required, no scheme specified here so must be specified in [Authorize] attribute if no default
-    options.AddPolicy(PolicyB, policy =>
-        {
-            policy.RequireRole(RoleB);
-        });
-    // UserA or UserB required in RoleA or RoleB
-    options.AddPolicy(PolicyAorB, policy =>
-        {
-            policy.AddAuthenticationSchemes(SchemeA, SchemeB)
-                  .RequireRole(RoleA, RoleB);
-        });
-    // UserA,B,C any role
-    options.AddPolicy(PolicyAnyRole, policy =>
-    {
-        policy.RequireAuthenticatedUser();
-    });
-    // UserA and RoleC required
-    options.AddPolicy(PolicyUserAandRoleC, policy =>
-    {
-        policy.AddAuthenticationSchemes(SchemeA)
-              .RequireRole(RoleC);
-    });
-});
+    Console.WriteLine("Using Forwarding Auth");
+    AddForardingAuth(builder);
+}
+else 
+{
+    string? defaultScheme = (args.Length > 0 && args[0].StartsWith("Scheme")) ? args[0] : "";
+    Console.WriteLine($"Using default scheme of '{defaultScheme}'");
+    AddAuth(builder, defaultScheme);
+}
 #endregion
 
 var app = builder.Build();
@@ -220,15 +188,98 @@ app.Run();
 
 #pragma warning restore CA2254
 
-static string ForwardSelectorFromUser(HttpContext context)
+static void AddAuth(WebApplicationBuilder builder, string defaultScheme)
 {
-    var user = context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
-    var scheme = SchemeA; // default
-    if (user is not null && user.StartsWith("User") && user.Length > 4 && user[4] is >= 'A' and <= 'C')
+    builder.Services
+        .AddAuthentication(defaultScheme)
+        .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA)
+        .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB)
+        .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC);
+
+    builder.Services.AddAuthorization(options =>
     {
-        scheme = $"Scheme{user[4..]}";
-    }
-    Console.WriteLine($"ForwardSelectorFromUser returning {scheme}");
-    return scheme;
+        // UserA and RoleA required
+        options.AddPolicy(PolicyA, policy =>
+            {
+                policy.AddAuthenticationSchemes(SchemeA)
+                      .RequireRole(RoleA);
+            });
+        // UserB required, no scheme specified here so must be specified in [Authorize] attribute if no default
+        options.AddPolicy(PolicyB, policy =>
+            {
+                policy.RequireRole(RoleB);
+            });
+        options.AddPolicy(PolicyAorB, policy =>
+            {
+                policy.AddAuthenticationSchemes(SchemeA, SchemeB)
+                      .RequireRole(RoleA, RoleB);
+            });
+        // UserA,B,C any role
+        options.AddPolicy(PolicyAnyRole, policy =>
+        {
+            policy.RequireAuthenticatedUser() // needed 
+              .AddAuthenticationSchemes(SchemeA, SchemeB, SchemeC);
+        });
+        // UserA and RoleC required
+        options.AddPolicy(PolicyUserAandRoleC, policy =>
+        {
+            policy.AddAuthenticationSchemes(SchemeA)
+              .RequireRole(RoleC);
+        });
+    });
+}
+
+static void AddForardingAuth(WebApplicationBuilder builder)
+{
+    builder.Services
+        .AddAuthentication(SchemeForwarding)
+        .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeA, options => options.Name = NameClaimA)
+        .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeB, options => options.Name = NameClaimB)
+        .AddScheme<MyAuthenticationSchemeOptions, CustomAuthenticationHandler>(SchemeC, options => options.Name = NameClaimC)
+        .AddPolicyScheme(SchemeForwarding, SchemeForwarding, options =>
+        {
+            options.ForwardDefaultSelector = (context) =>
+            {
+                var user = context.Request.Headers["X-Test-User"].ElementAtOrDefault(0);
+                var scheme = SchemeA; // default
+                if (user is not null && user.StartsWith("User") && user.Length > 4 && user[4] is >= 'A' and <= 'C')
+                {
+                    scheme = $"Scheme{user[4..]}";
+                }
+                Console.WriteLine($"ForwardSelectorFromUser returning {scheme}");
+                return scheme;
+            };
+        });
+
+    builder.Services.AddAuthorization(options =>
+    {
+        // UserA and RoleA required
+        options.AddPolicy(PolicyA, policy =>
+            {
+                policy.RequireRole(RoleA);
+            });
+        // UserB required, no scheme specified here so must be specified in [Authorize] attribute if no default
+        options.AddPolicy(PolicyB, policy =>
+            {
+                policy.RequireRole(RoleB);
+            });
+        // UserA or UserB required in RoleA or RoleB
+        options.AddPolicy(PolicyAorB, policy =>
+            {
+                policy.AddAuthenticationSchemes(SchemeA, SchemeB)
+                      .RequireRole(RoleA, RoleB);
+            });
+        // UserA,B,C any role
+        options.AddPolicy(PolicyAnyRole, policy =>
+        {
+            policy.RequireAuthenticatedUser();
+        });
+        // UserA and RoleC required
+        options.AddPolicy(PolicyUserAandRoleC, policy =>
+        {
+            policy.AddAuthenticationSchemes(SchemeA)
+                  .RequireRole(RoleC);
+        });
+    });
 }
 

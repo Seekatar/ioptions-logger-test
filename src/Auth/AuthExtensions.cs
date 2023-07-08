@@ -51,18 +51,4 @@ public class CustomAuthenticationHandler : AuthenticationHandler<MyAuthenticatio
         var principal = new ClaimsPrincipal(identity);
         return Task.FromResult(AuthenticateResult.Success(new AuthenticationTicket(principal, ClaimTypes.Name)));
     }
-
-    protected override Task HandleChallengeAsync(AuthenticationProperties properties)
-    {
-        // called when authentication fails and 401 will be returned.
-        Logger.LogInformation("Scheme{handlerName} was challenged", Options.Name);
-        return base.HandleChallengeAsync(properties);
-    }
-
-    protected override Task HandleForbiddenAsync(AuthenticationProperties properties)
-    {
-        Logger.LogInformation("Scheme{handlerName} was forbidden", Options.Name);
-        return base.HandleForbiddenAsync(properties);
-    }
-
 }

@@ -18,11 +18,14 @@ param(
         }
      })]
     [string[]]$Tasks,
-    [ValidateSet('SchemeA', 'SchemeB', 'SchemeC')]
+    [ValidateSet('SchemeA', 'SchemeB', 'SchemeC', 'forward')]
     [string] $DefaultAuthScheme
 )
 
 Push-Location $PSScriptRoot
+
+$prevSuppress = $env:DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER
+$env:DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=1
 
 try {
 
@@ -56,4 +59,5 @@ foreach ($task in $Tasks) {
 
 } finally {
     Pop-Location  
+    $env:DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER=$prevSuppress
 }
